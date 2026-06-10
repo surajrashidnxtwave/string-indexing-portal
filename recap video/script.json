@@ -1,0 +1,113 @@
+{
+  "topic": "String Indexing",
+  "role": "recap",
+  "variant": "recap.takeaways",
+  "target_duration_seconds": 120,
+  "voice_settings": {
+    "stability": 0.5,
+    "similarity_boost": 0.75,
+    "style": 0.0,
+    "use_speaker_boost": true
+  },
+  "segments": [
+    {
+      "id": "seg_01",
+      "kind": "narration",
+      "scene": "title",
+      "eyebrow": "Recap · String Indexing",
+      "heading": "You can now reach into <em>any string.</em>",
+      "sub": "One quick pass over everything you learned — then it's yours for good.",
+      "narration": "You've come a long way. You can now reach into any string and take exactly the piece you need. Let's do one quick pass over everything you learned, so it sticks.",
+      "est_seconds": 13
+    },
+    {
+      "id": "seg_02",
+      "kind": "narration",
+      "scene": "grid",
+      "eyebrow": "Takeaway 1 · Zero-based",
+      "caption": "Counting starts at <strong>0</strong> — the first character is <code>s[0]</code>.",
+      "grid": { "word": "python", "reveal_index": true, "highlight": [0], "pointer": 0 },
+      "expr": "s[0] → <span class='res'>'p'</span>",
+      "narration": "First: every character lives at a numbered position, and counting starts at zero, not one. So s of zero is the first character. For the word python, that's p.",
+      "est_seconds": 15
+    },
+    {
+      "id": "seg_03",
+      "kind": "narration",
+      "scene": "grid",
+      "eyebrow": "Takeaway 2 · Negative indexing",
+      "caption": "Negative numbers count from the <strong>end</strong> — no length needed.",
+      "grid": { "word": "python", "reveal_index": true, "reveal_negative": true, "highlight": [5], "pointer": 5, "walk_from_end": true },
+      "expr": "s[-1] → <span class='res'>'n'</span>",
+      "narration": "Second: negative numbers count from the end. Minus one is always the last character, minus two the one before it. You never need to know how long the string is to grab its ending.",
+      "est_seconds": 15
+    },
+    {
+      "id": "seg_04",
+      "kind": "narration",
+      "scene": "compare",
+      "eyebrow": "Takeaway 3 · Index vs. slice",
+      "caption": "One number → one character. <code>start:stop</code> → a substring, stop <strong>exclusive</strong>.",
+      "compare": {
+        "word": "python",
+        "left": { "label": "s[1]", "highlight": [1], "result": "'y'", "tag": "one character" },
+        "right": { "label": "s[1:4]", "highlight": [1, 2, 3], "result": "'yth'", "tag": "a substring" }
+      },
+      "narration": "Third: a single index gives you one character, but two numbers with a colon give you a slice — a whole substring. And remember the rule that trips everyone up: the stop position is exclusive. s of one to four stops right before index four.",
+      "est_seconds": 20
+    },
+    {
+      "id": "seg_05",
+      "kind": "narration",
+      "scene": "code_grid",
+      "eyebrow": "Takeaway 4 · Slices are safe",
+      "caption": "Out-of-bounds <strong>indexing</strong> crashes — out-of-bounds <strong>slicing</strong> doesn't.",
+      "code": [
+        { "text": "s = 'python'" },
+        { "text": "s[10]      # IndexError!" },
+        { "text": "s[2:100]   # totally fine", "hl": true }
+      ],
+      "active_line": 2,
+      "grid": { "word": "python", "reveal_index": true, "highlight": [2, 3, 4, 5] },
+      "expr": "s[2:100] → <span class='res'>'thon'</span>",
+      "narration": "Fourth: indexing past the end of a string crashes with an index error. But slicing past the end is completely safe — Python just stops at the last character. s of two to one hundred quietly gives you thon.",
+      "est_seconds": 18
+    },
+    {
+      "id": "seg_06",
+      "kind": "interactive",
+      "widget": "predict",
+      "scene": "grid",
+      "eyebrow": "Last prediction",
+      "caption": "One final check — what does this do?",
+      "grid": { "word": "hello", "reveal_index": true, "highlight": [] },
+      "prompt": "s = 'hello'. What happens when you run s[0] = 'H'?",
+      "narration": "One final prediction before you go. The string is hello, and you try to run s of zero equals capital H. What happens? Choose your answer, then reveal.",
+      "est_seconds": 12,
+      "config": {
+        "word": "hello",
+        "question": "s = 'hello' — what does s[0] = 'H' do?",
+        "options": ["s becomes 'Hello'", "TypeError", "Nothing"],
+        "correct_index": 1,
+        "reveal_highlight": [0],
+        "explanation": "Strings are immutable — they can't be changed in place. To 'modify' one, build a new string: 'H' + s[1:]."
+      }
+    },
+    {
+      "id": "seg_07",
+      "kind": "narration",
+      "scene": "recap",
+      "eyebrow": "The five takeaways",
+      "heading": "Keep these five",
+      "recap_points": [
+        "Counting starts at <strong>0</strong> — <code>s[0]</code> is first, <code>s[-1]</code> is last.",
+        "Negative indices count from the <strong>end</strong>.",
+        "<code>s[start:stop]</code> is a substring — stop is <strong>exclusive</strong>.",
+        "Out-of-bounds <strong>slices</strong> are safe; out-of-bounds <strong>indexes</strong> crash.",
+        "Strings are <strong>immutable</strong> — slicing returns a <em>new</em> string."
+      ],
+      "narration": "And that's the whole toolkit. Counting starts at zero, so s of zero is first and s of minus one is last. Negative indices count from the end. A slice takes start up to, but not including, stop. Slicing out of bounds is safe, indexing out of bounds is not. And strings are immutable — every slice gives you a brand new string. You're ready. Go put it to work in the practice session.",
+      "est_seconds": 28
+    }
+  ]
+}

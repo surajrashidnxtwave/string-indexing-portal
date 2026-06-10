@@ -1,0 +1,40 @@
+{
+  "segments": [
+    {
+      "id": "seg_01",
+      "slide": "hook",
+      "file": "audio/seg_01.mp3",
+      "duration": 19.59
+    },
+    {
+      "id": "seg_02",
+      "slide": "scenario_initials",
+      "file": "audio/seg_02.mp3",
+      "duration": 16.74
+    },
+    {
+      "id": "seg_03",
+      "slide": "scenario_date",
+      "file": "audio/seg_03.mp3",
+      "duration": 16.14
+    },
+    {
+      "id": "seg_04",
+      "slide": "scenario_message",
+      "file": "audio/seg_04.mp3",
+      "duration": 12.36
+    },
+    {
+      "id": "seg_05",
+      "slide": "the_skill",
+      "file": "audio/seg_05.mp3",
+      "duration": 14.29
+    },
+    {
+      "id": "seg_06",
+      "slide": "why_it_matters",
+      "file": "audio/seg_06.mp3",
+      "duration": 17.87
+    }
+  ]
+}

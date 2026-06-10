@@ -1,0 +1,117 @@
+{
+  "topic": "String Indexing",
+  "role": "worked-example",
+  "variant": "worked-example.annotated",
+  "target_duration_seconds": 240,
+  "problem_statement": "Extract the first three characters of a user's email before the @ symbol.",
+  "voice_settings": {
+    "stability": 0.5,
+    "similarity_boost": 0.75,
+    "style": 0.0,
+    "use_speaker_boost": true
+  },
+  "segments": [
+    {
+      "id": "seg_01",
+      "kind": "narration",
+      "scene": "title",
+      "eyebrow": "Worked Example",
+      "heading": "Let's <em>slice</em> a real string.",
+      "sub": "The problem: pull the first three characters of a user's email — the start of the username.",
+      "narration": "Let's put indexing to work on something real. Here's the task: given a user's email address, pull out the first three characters — the start of their username. We'll write the code, then walk through exactly what each part does.",
+      "est_seconds": 18
+    },
+    {
+      "id": "seg_02",
+      "kind": "narration",
+      "scene": "code_grid",
+      "eyebrow": "The setup",
+      "caption": "Store the email in a variable.",
+      "code": [
+        { "text": "email = 'alice@example.com'", "hl": true },
+        { "text": "username = email[0:3]" }
+      ],
+      "active_line": 0,
+      "grid": { "word": "alice@example.com", "reveal_index": true, "highlight": [] },
+      "narration": "First, we store the email in a variable called email. The string is alice, at example dot com. Think of it as a row of characters, each at a numbered position, starting from zero.",
+      "est_seconds": 20
+    },
+    {
+      "id": "seg_03",
+      "kind": "narration",
+      "scene": "code_grid",
+      "eyebrow": "The slice",
+      "caption": "<code>[0:3]</code> means: start at 0, stop <strong>before</strong> 3.",
+      "code": [
+        { "text": "email = 'alice@example.com'" },
+        { "text": "username = email[0:3]", "hl": true }
+      ],
+      "active_line": 1,
+      "grid": { "word": "alice@example.com", "reveal_index": true, "highlight": [0, 1, 2] },
+      "expr": "email[0:3] → <span class='res'>'ali'</span>",
+      "narration": "Now the slice. email, square bracket, zero, colon, three. This says: start at index zero, and take characters up to — but not including — index three. So it grabs positions zero, one, and two: a, l, i. The result is the string a-l-i.",
+      "est_seconds": 24
+    },
+    {
+      "id": "seg_04",
+      "kind": "narration",
+      "scene": "code_grid",
+      "eyebrow": "Why not index 3?",
+      "caption": "The end is <strong>exclusive</strong> — position 3 is left out.",
+      "code": [
+        { "text": "email = 'alice@example.com'" },
+        { "text": "username = email[0:3]", "hl": true }
+      ],
+      "active_line": 1,
+      "grid": { "word": "alice@example.com", "reveal_index": true, "highlight": [0, 1, 2], "exclude": [3] },
+      "expr": "email[0:3] → <span class='res'>'ali'</span>  <span class='cmt'># not 'alic'</span>",
+      "narration": "Here's the part that trips people up. Why doesn't it include index three, the second i? Because in Python slicing, the end number is exclusive. The slice stops right before it. A handy trick: subtract start from end, three minus zero, and you get exactly three characters. Not four.",
+      "est_seconds": 26
+    },
+    {
+      "id": "seg_05",
+      "kind": "narration",
+      "scene": "code_grid",
+      "eyebrow": "Negative slicing",
+      "caption": "Negative indices count from the end — handy for suffixes.",
+      "code": [
+        { "text": "email = 'alice@example.com'" },
+        { "text": "tld = email[-3:]", "hl": true }
+      ],
+      "active_line": 1,
+      "grid": { "word": "alice@example.com", "reveal_index": true, "reveal_negative": true, "highlight": [14, 15, 16], "walk_from_end": true },
+      "expr": "email[-3:] → <span class='res'>'com'</span>",
+      "narration": "Slicing works from the end too. email, bracket, minus three, colon, with nothing after the colon. Minus three starts three characters from the end, and the empty end means: go all the way to the last character. That pulls out c-o-m, the domain ending.",
+      "est_seconds": 24
+    },
+    {
+      "id": "seg_06",
+      "kind": "interactive",
+      "widget": "pyodide_cell",
+      "scene": "code_live",
+      "eyebrow": "Your turn — real Python",
+      "caption": "Edit the slice and run it. This is actual Python running in your browser.",
+      "prompt": "Now you try. Change the slice however you like and run it — this is real Python executing right here in the page. When you're done exploring, press Continue.",
+      "narration": "Now it's your turn, and this time it's real. The code below actually runs Python, right in your browser. Try changing the slice numbers — pull out the username, the domain, a single character, whatever you like. Run it, see the result, and press continue when you're ready.",
+      "est_seconds": 14,
+      "config": {
+        "starter_code": "email = 'alice@example.com'\n\n# Try changing the slice:\nusername = email[0:3]\nprint(username)",
+        "hint": "Try email[6:13] for the domain, or email[-3:] for 'com'."
+      }
+    },
+    {
+      "id": "seg_07",
+      "kind": "narration",
+      "scene": "recap",
+      "eyebrow": "Recap",
+      "heading": "What the slice taught us",
+      "recap_points": [
+        "<code>s[start:end]</code> takes characters from <code>start</code> up to <strong>but not including</strong> <code>end</code>.",
+        "<code>end − start</code> = how many characters you get.",
+        "Leave a side blank to go to the beginning or end: <code>s[-3:]</code>."
+      ],
+      "narration": "Let's lock in what the slice taught us. First: start colon end takes characters from the start position up to, but not including, the end. Second: end minus start tells you how many characters you get. And third: you can leave either side of the colon blank to run to the beginning or the end of the string. Next, you'll practice this yourself.",
+      "est_seconds": 24
+    }
+  ]
+}

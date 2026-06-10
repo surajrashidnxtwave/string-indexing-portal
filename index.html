@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>String Indexing &amp; Slicing — Unified Learning Portal</title>
+  <link rel="stylesheet" href="learning-experience/css/styles.css">
+  <style>
+    /* ════════════════════════════════════════════════════════════════
+       EMBEDDED INTERACTIVE PLAYER ENGINE — styles
+       Ported from the standalone players, scoped under .player-stage
+       so nothing collides with the portal stylesheet.
+       ════════════════════════════════════════════════════════════════ */
+    .player-mount { margin-bottom: 1.4rem; }
+    .player-note { font-size: 0.8rem; color: var(--text-3); margin-top: 0.6rem; }
+
+    .player-stage{
+      --pbg:#0d1b2a; --ppanel:#13263a; --pink:#e7ecf3; --pdim:#8aa0b8; --pline:#24405c;
+      --pamber:#ffb454; --pamber-soft:rgba(255,180,84,.16);
+      --pgreen:#7ee787; --pviolet:#a78bfa; --pviolet-soft:rgba(167,139,250,.16);
+      --pmono:'JetBrains Mono','SFMono-Regular',ui-monospace,Consolas,monospace;
+      --psans:'Bricolage Grotesque',-apple-system,'Segoe UI',sans-serif;
+      width:100%;aspect-ratio:16/9;background:var(--ppanel);color:var(--pink);
+      border:1px solid var(--pline);border-radius:14px;position:relative;
+      box-shadow:0 30px 80px rgba(0,0,0,.5);overflow:hidden;
+      font-family:var(--psans);line-height:1.4;
+    }
+    .player-stage .chrome{height:34px;border-bottom:1px solid var(--pline);display:flex;
+      align-items:center;gap:7px;padding:0 16px;color:var(--pdim);
+      font-family:var(--pmono);font-size:11px}
+    .player-stage .pdot{width:10px;height:10px;border-radius:50%}
+    .player-stage .pdot.r{background:#ff5f56}.player-stage .pdot.y{background:#ffbd2e}.player-stage .pdot.g{background:#27c93f}
+    .player-stage .file{margin-left:10px}
+
+    .player-stage .canvas{position:absolute;inset:34px 0 56px 0;display:flex;
+      align-items:center;justify-content:center;padding:2% 6%}
+    .player-stage .slide{position:absolute;inset:0;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;padding:3% 6%;text-align:center;
+      opacity:0;transform:translateY(12px);
+      transition:opacity .5s ease,transform .5s ease;
+      pointer-events:none;z-index:0}
+    .player-stage .slide.on{opacity:1;transform:none;pointer-events:auto;z-index:1}
+
+    .player-stage .eyebrow{font-family:var(--pmono);font-size:11px;letter-spacing:.18em;
+      text-transform:uppercase;color:var(--pamber);margin-bottom:14px}
+    .player-stage h1{font-size:clamp(18px,2.6vw,32px);font-weight:600;line-height:1.18;max-width:22ch;
+      letter-spacing:normal;color:var(--pink)}
+    .player-stage h1 em{color:var(--pamber);font-style:normal}
+    .player-stage .sub{color:var(--pdim);font-size:clamp(12px,1.3vw,16px);margin-top:14px;max-width:40ch;line-height:1.5}
+    .player-stage .caption{color:var(--pink);font-size:clamp(13px,1.4vw,17px);margin-bottom:20px;font-weight:500}
+    .player-stage .caption code,.player-stage .caption strong{color:var(--pamber);font-weight:600;background:none;border:none;padding:0}
+    .player-stage .caption code{font-family:var(--pmono)}
+
+    /* indexed grid */
+    .player-stage .grid{display:flex;gap:6px;font-family:var(--pmono)}
+    .player-stage .cell{display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
+    .player-stage .glyph{width:clamp(32px,4.4vw,52px);height:clamp(32px,4.4vw,52px);
+      display:flex;align-items:center;justify-content:center;font-size:clamp(16px,2.2vw,26px);
+      border:1px solid var(--pline);border-radius:9px;background:#0e2034;
+      transition:all .4s cubic-bezier(.22,1,.36,1)}
+    .player-stage .idx,.player-stage .nidx{font-size:12px;color:var(--pdim);transition:color .4s ease,opacity .5s ease;opacity:0}
+    .player-stage .nidx{font-size:10px;color:#5f7a96}
+    .player-stage .idx.show,.player-stage .nidx.show{opacity:1}
+    .player-stage .cell.hot .glyph{background:var(--pamber-soft);border-color:var(--pamber);color:var(--pamber);
+      transform:translateY(-5px);box-shadow:0 10px 22px rgba(255,180,84,.28)}
+    .player-stage .cell.hot .idx{color:var(--pamber)} .player-stage .cell.hot .nidx{color:var(--pamber)}
+    .player-stage .cell.span .glyph{background:var(--pviolet-soft);border-color:var(--pviolet);color:#d8c7ff}
+    .player-stage .grid.compact{gap:3px}
+    .player-stage .grid.compact .glyph{width:clamp(17px,2vw,26px);height:clamp(20px,2.5vw,31px);font-size:clamp(11px,1.3vw,16px);border-radius:5px}
+    .player-stage .grid.compact .idx{font-size:9px} .player-stage .grid.compact .nidx{font-size:8px}
+    .player-stage .grid.compact .cell{gap:4px}
+    .player-stage .cell.excluded .glyph{border-color:#ff6b6b;border-style:dashed;color:#ff9a9a;
+      background:rgba(255,107,107,.08);opacity:.85}
+    .player-stage .cell.excluded .idx{color:#ff9a9a}
+
+    .player-stage .pointer{position:absolute;top:-28px;left:0;color:var(--pamber);font-size:18px;
+      transition:transform .45s cubic-bezier(.22,1,.36,1),opacity .3s ease;opacity:0}
+    .player-stage .pointer.show{opacity:1}
+
+    .player-stage .expr{font-family:var(--pmono);font-size:clamp(14px,1.7vw,20px);margin-top:20px;min-height:1.4em}
+    .player-stage .expr .res{color:var(--pgreen)} .player-stage .expr .cmt{color:var(--pdim)}
+
+    /* code block */
+    .player-stage .codeblock{font-family:var(--pmono);background:#0a1622;border:1px solid var(--pline);
+      border-radius:10px;padding:12px 14px;margin-bottom:18px;text-align:left;
+      min-width:min(420px,78vw);font-size:clamp(11px,1.3vw,15px)}
+    .player-stage .codeline{display:flex;gap:12px;padding:3px 6px;border-radius:5px;color:var(--pdim);
+      transition:background .3s,color .3s}
+    .player-stage .codeline .lnum{color:#456;width:1.2em;text-align:right;user-select:none}
+    .player-stage .codeline .ltext{color:#c8d6e5;white-space:pre}
+    .player-stage .codeline.active{background:var(--pamber-soft)}
+    .player-stage .codeline.active .ltext{color:var(--pink)}
+    .player-stage .codeline.active .lnum{color:var(--pamber)}
+
+    /* pyodide live cell */
+    .player-stage .pyw{width:min(540px,82vw);gap:10px}
+    .player-stage .pyeditor{width:100%;background:#0a1622;border:1px solid var(--pline);border-radius:10px;overflow:hidden}
+    .player-stage .pycode{width:100%;min-height:100px;background:transparent;color:#c8d6e5;border:none;
+      font-family:var(--pmono);font-size:13px;padding:12px;resize:vertical;line-height:1.5}
+    .player-stage .pycode:focus{outline:none}
+    .player-stage .pyrow{display:flex;align-items:center;gap:14px;width:100%}
+    .player-stage .pystatus{font-family:var(--pmono);font-size:11px;color:var(--pdim)}
+    .player-stage .pystatus.ready{color:var(--pgreen)}
+    .player-stage .pyout{width:100%;min-height:2.2em;max-height:120px;overflow:auto;background:#0a1622;
+      border:1px solid var(--pline);border-radius:10px;padding:10px 12px;font-family:var(--pmono);
+      font-size:13px;color:var(--pgreen);white-space:pre-wrap;text-align:left;margin:0}
+    .player-stage .pyout.err{color:#ff9a9a}
+    .player-stage .pyhint{font-size:12px;color:var(--pdim);font-family:var(--pmono)}
+
+    /* compare scene */
+    .player-stage .compare{display:flex;gap:clamp(18px,4vw,56px);align-items:flex-start}
+    .player-stage .cmpcol{display:flex;flex-direction:column;align-items:center;gap:12px}
+    .player-stage .cmplabel{font-family:var(--pmono);font-size:clamp(13px,1.6vw,18px);color:var(--pink)}
+    .player-stage .cmptag{font-size:12px;color:var(--pdim)}
+    .player-stage .cmpres{font-family:var(--pmono);color:var(--pgreen);font-size:clamp(12px,1.4vw,16px)}
+
+    /* in-player recap slide */
+    .player-stage .vrecap{display:flex;flex-direction:column;gap:14px;max-width:32ch;text-align:left;margin-top:6px}
+    .player-stage .vrecap li{list-style:none;display:flex;gap:11px;align-items:flex-start;
+      font-size:clamp(12px,1.4vw,16px);line-height:1.4;opacity:0;transform:translateX(-10px);
+      transition:opacity .5s ease,transform .5s ease}
+    .player-stage .vrecap li.in{opacity:1;transform:none}
+    .player-stage .vrecap .n{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:var(--pamber-soft);
+      color:var(--pamber);font-family:var(--pmono);font-size:12px;display:flex;
+      align-items:center;justify-content:center;margin-top:1px}
+    .player-stage .vrecap code{font-family:var(--pmono);color:var(--pamber);background:none;border:none;padding:0}
+    .player-stage .vrecap strong{color:var(--pamber)}
+
+    /* interactive widgets (renamed: wopts/wopt/ixfb to avoid portal collisions) */
+    .player-stage .widget{display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:20px}
+    .player-stage .wrow{display:flex;gap:10px;align-items:center;font-family:var(--pmono)}
+    .player-stage .wrow input{width:60px;padding:8px;text-align:center;background:#0e2034;color:var(--pink);
+      border:1px solid var(--pline);border-radius:8px;font-family:var(--pmono);font-size:16px}
+    .player-stage .wrow input:focus{outline:none;border-color:var(--pamber)}
+    .player-stage .btn{background:var(--pamber);color:#0d1b2a;border:none;font-weight:600;
+      padding:9px 20px;border-radius:8px;font-size:14px;cursor:pointer;font-family:var(--psans)}
+    .player-stage .btn.ghost{background:none;color:var(--pink);border:1px solid var(--pline)}
+    .player-stage .ixfb{font-family:var(--pmono);font-size:14px;min-height:1.3em;color:var(--pgreen)}
+    .player-stage .wopts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    .player-stage .wopt{font-family:var(--pmono);font-size:16px;padding:9px 16px;border:1px solid var(--pline);
+      border-radius:9px;background:#0e2034;color:var(--pink);cursor:pointer;transition:all .2s}
+    .player-stage .wopt:hover{border-color:var(--pamber)}
+    .player-stage .wopt.correct{border-color:var(--pgreen);background:rgba(126,231,135,.14);color:var(--pgreen)}
+    .player-stage .wopt.wrong{border-color:#ff6b6b;background:rgba(255,107,107,.12);color:#ff9a9a}
+    .player-stage .explain{color:var(--pdim);font-size:13px;max-width:40ch;line-height:1.5;text-align:center}
+
+    /* footer transport */
+    .player-stage .scrubber{position:absolute;left:0;right:0;bottom:56px;height:18px;display:flex;align-items:center;
+      padding:0 16px;cursor:pointer;z-index:3}
+    .player-stage .scrub-track{position:relative;flex:1;height:5px;border-radius:3px;background:var(--pline)}
+    .player-stage .scrub-fill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--pamber);border-radius:3px}
+    .player-stage .scrub-head{position:absolute;top:50%;left:0;width:13px;height:13px;border-radius:50%;
+      background:var(--pamber);transform:translate(-50%,-50%) scale(.6);opacity:0;
+      transition:opacity .15s,transform .15s;box-shadow:0 1px 5px rgba(0,0,0,.5)}
+    .player-stage .scrubber:hover .scrub-head,.player-stage .scrubber.dragging .scrub-head{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    .player-stage .scrubber:hover .scrub-track{height:7px}
+    .player-stage .ptime{font-family:var(--pmono);font-size:11px;color:var(--pdim);white-space:nowrap;min-width:80px}
+    .player-stage .controls{position:absolute;bottom:0;left:0;right:0;height:56px;border-top:1px solid var(--pline);
+      display:flex;align-items:center;gap:10px;padding:0 16px;background:rgba(8,18,30,.6);z-index:3}
+    .player-stage .controls button{background:none;border:none;color:var(--pink);cursor:pointer;font-size:14px;
+      font-family:var(--psans);display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:7px;
+      transition:background .15s,color .15s}
+    .player-stage .controls button:hover{background:rgba(255,255,255,.07)}
+    .player-stage .controls button:disabled{opacity:.3;cursor:default}
+    .player-stage .controls button:disabled:hover{background:none}
+    .player-stage .toggle{min-width:92px;justify-content:center}
+    .player-stage .seg{font-family:var(--pmono);font-size:11px;color:var(--pdim);white-space:nowrap;
+      max-width:140px;overflow:hidden;text-overflow:ellipsis}
+    .player-stage .gatebadge{font-family:var(--pmono);font-size:11px;color:var(--pamber)}
+
+    /* clickable segment timeline */
+    .player-stage .timeline{flex:1;display:flex;align-items:center;gap:6px;min-width:0}
+    .player-stage .ptick{position:relative;flex:1;height:6px;border-radius:3px;background:var(--pline);
+      cursor:pointer;transition:background .2s}
+    .player-stage .ptick:hover{background:#3a5f86}
+    .player-stage .ptick.done{background:var(--pamber)}
+    .player-stage .ptick.active{background:var(--pamber);box-shadow:0 0 0 2px rgba(255,180,84,.3)}
+    .player-stage .ptick.ix{background:repeating-linear-gradient(45deg,var(--pline),var(--pline) 3px,#1a3550 3px,#1a3550 6px)}
+    .player-stage .ptick.ix.done,.player-stage .ptick.ix.active{background:repeating-linear-gradient(45deg,var(--pamber),var(--pamber) 3px,#e09a30 3px,#e09a30 6px)}
+    .player-stage .ptick .tip{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
+      background:#0a1622;border:1px solid var(--pline);color:var(--pink);font-family:var(--pmono);
+      font-size:10px;padding:4px 8px;border-radius:6px;white-space:nowrap;opacity:0;
+      pointer-events:none;transition:opacity .15s;z-index:7}
+    .player-stage .ptick:hover .tip{opacity:1}
+    .player-stage .ptick .tip .num{color:var(--pamber)}
+
+    /* interaction gate banner */
+    .player-stage .ix-wait{position:absolute;bottom:64px;left:50%;transform:translateX(-50%);
+      background:rgba(255,180,84,.14);border:1px solid var(--pamber);color:var(--pamber);
+      padding:6px 14px;border-radius:999px;font-size:12px;font-family:var(--pmono);
+      opacity:0;transition:opacity .3s;pointer-events:none;z-index:4}
+    .player-stage .ix-wait.show{opacity:1}
+
+    .player-stage .gate{position:absolute;inset:0;background:rgba(8,16,26,.93);display:flex;flex-direction:column;
+      align-items:center;justify-content:center;gap:16px;z-index:6;text-align:center;padding:7%}
+    .player-stage .gate h2{font-size:clamp(17px,2.2vw,25px);font-weight:600;letter-spacing:normal}
+    .player-stage .gate p{color:var(--pdim);max-width:46ch;line-height:1.55;font-size:14px}
+    .player-stage .gate code{font-family:var(--pmono);color:var(--pamber);background:#0e2034;padding:2px 6px;border-radius:5px;font-size:12px;border:none}
+    .player-stage .start{background:var(--pamber);color:#0d1b2a;border:none;font-weight:600;padding:12px 32px;border-radius:999px;font-size:15px;cursor:pointer}
+    /* fullscreen mode — stage fills the screen, slide content centered at 16/9 */
+    .player-stage:fullscreen{
+      width:100vw;height:100vh;aspect-ratio:auto;
+      border:none;border-radius:0;box-shadow:none;
+      background:var(--pbg);
+    }
+    .player-stage:fullscreen .canvas{inset:34px 0 56px 0}
+    @media (prefers-reduced-motion:reduce){.player-stage *{transition:none!important}}
+  </style>
+</head>
+<body>
+
+  <div class="shell">
+
+    <aside class="sidebar">
+      <div>
+        <div class="brand-kicker">Python Programming · Module 1</div>
+        <div class="brand-title">String Indexing &amp; Slicing</div>
+        <div class="brand-sub">Topic 1 · Unified learning portal</div>
+      </div>
+
+      <div>
+        <div class="arc-progress"><div class="arc-progress-fill" id="arc-progress-fill"></div></div>
+        <div class="arc-progress-label" id="arc-progress-label">0% complete</div>
+      </div>
+
+      <nav class="arc-nav" id="arc-nav"></nav>
+
+      <div class="sidebar-foot">
+        Interactive script-driven videos<br>
+        generated with ElevenLabs narration<br>
+        Adaptive practice powered by 2PL IRT
+      </div>
+    </aside>
+
+    <main class="main">
+      <div id="step-content"></div>
+    </main>
+
+  </div>
+
+  <script src="learning-experience/js/items.js"></script>
+  <script src="learning-experience/js/irt.js"></script>
+  <script src="learning-experience/js/practice.js"></script>
+
+  <script>
+  // ════════════════════════════════════════════════════════════════════
+  // EMBEDDED PLAYER ENGINE
+  // Instance-based port of the standalone player (worked-example engine,
+  // a superset of all three). One createPlayer() per video step; each
+  // instance fetches <base>/script.json + <base>/audio/manifest.json and
+  // streams <base>/audio/seg_NN.mp3. Destroyed when the step changes.
+  // ════════════════════════════════════════════════════════════════════
+
+  /* shared Pyodide loader (lazy, loaded once for the whole portal) */
+  let _pyodide=null, _pyLoading=null;
+  function ensurePyodide(onReady, onProgress){
+    if(_pyodide){ if(onReady) onReady(); return Promise.resolve(_pyodide); }
+    if(!_pyLoading){
+      if(onProgress) onProgress('loading Python…');
+      _pyLoading=new Promise((resolve,reject)=>{
+        const s=document.createElement('script');
+        s.src='https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js';
+        s.onload=async ()=>{
+          try{
+            _pyodide=await loadPyodide({indexURL:'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/'});
+            resolve(_pyodide);
+          }catch(e){ reject(e); }
+        };
+        s.onerror=()=>reject(new Error('Could not load Python (needs internet)'));
+        document.head.appendChild(s);
+      });
+    }
+    _pyLoading.then(()=>{ if(onReady) onReady(); }).catch(e=>{ if(onProgress) onProgress('Python failed to load — needs internet'); });
+    return _pyLoading;
+  }
+
+  function escapeHTML(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function fmtTime(s){ s=Math.max(0,Math.floor(s)); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
+
+  function createPlayer(mount, base, opts){
+    opts=opts||{};
+    let SCRIPT=null, manifest=null, audioEl=null, audioBust=0, idx=0, paused=false, usingAudio=false, waiting=false;
+    let rafId=null, segPos=0, segDur=0, lastTs=0, dragging=false, started=false, destroyed=false;
+    let sceneCues=[], curSlide=null, curSeg=null;
+
+    mount.innerHTML=`
+      <div class="player-stage">
+        <div class="chrome">
+          <span class="pdot r"></span><span class="pdot y"></span><span class="pdot g"></span>
+          <span class="file">${escapeHTML(opts.fileLabel||'player')}</span>
+        </div>
+        <div class="canvas"></div>
+        <div class="ix-wait">Interactive — try it, then press Continue ▸</div>
+        <div class="scrubber" title="Click or drag to seek within this segment">
+          <div class="scrub-track"><div class="scrub-fill"></div><div class="scrub-head"></div></div>
+        </div>
+        <div class="controls" style="display:none">
+          <button class="prev" title="Previous (←)">⏮</button>
+          <button class="toggle" title="Play / Pause (space)">⏸ Pause</button>
+          <button class="next" title="Next (→)">⏭</button>
+          <span class="ptime">0:00 / 0:00</span>
+          <div class="timeline"></div>
+          <button class="replay" title="Restart">↻</button>
+          <button class="fs" title="Fullscreen (f)">⛶</button>
+          <span class="seg"></span>
+        </div>
+        <div class="gate">
+          <div class="gatebadge">${escapeHTML(opts.gateBadge||'')}</div>
+          <h2>${escapeHTML(opts.gateTitle||'')}</h2>
+          <p>${opts.gateDesc||''}</p>
+          <button class="start">▶ Play</button>
+          <p style="font-size:12px">No audio yet? It runs on estimated timings.</p>
+        </div>
+      </div>`;
+
+    const stage=mount.querySelector('.player-stage');
+    const $=s=>stage.querySelector(s);
+    const canvas=$('.canvas'), segLabel=$('.seg'), controls=$('.controls'), gate=$('.gate'),
+          toggleBtn=$('.toggle'), ixWait=$('.ix-wait'), prevBtn=$('.prev'), nextBtn=$('.next'),
+          timeline=$('.timeline'), scrubber=$('.scrubber'), scrubFill=$('.scrub-fill'),
+          scrubHead=$('.scrub-head'), timeLabel=$('.ptime');
+
+    /* ---------- builders ---------- */
+    function gridHTML(cfg){
+      const word=cfg.word, len=[...word].length;
+      const excl=cfg.exclude||[];
+      let cells=[...word].map((ch,i)=>{
+        const neg = cfg.reveal_negative ? `<div class="nidx">${i-len}</div>` : '';
+        const ex = excl.includes(i) ? ' excluded' : '';
+        return `<div class="cell${ex}" data-i="${i}">
+          <div class="pointer">▼</div>
+          <div class="glyph">${ch==' '?'&nbsp;':ch}</div>
+          <div class="idx">${i}</div>${neg}
+        </div>`;
+      }).join('');
+      return `<div class="grid${cfg.compact?' compact':''}">${cells}</div>`;
+    }
+
+    function codeBlockHTML(lines, activeLine){
+      const rows=(lines||[]).map((ln,i)=>{
+        const active = (ln.hl || i===activeLine) ? ' active' : '';
+        return `<div class="codeline${active}"><span class="lnum">${i+1}</span><span class="ltext">${escapeHTML(ln.text)}</span></div>`;
+      }).join('');
+      return `<div class="codeblock">${rows}</div>`;
+    }
+
+    function pyodideWidgetHTML(cfg){
+      return `<div class="widget pyw" data-w="pyodide">
+        <div class="pyeditor"><textarea class="pycode" spellcheck="false">${escapeHTML(cfg.starter_code||'')}</textarea></div>
+        <div class="pyrow">
+          <button class="btn pyrun">▶ Run</button>
+          <span class="pystatus">loading Python…</span>
+        </div>
+        <pre class="pyout" aria-live="polite"></pre>
+        ${cfg.hint?`<div class="pyhint">💡 ${escapeHTML(cfg.hint)}</div>`:''}
+      </div>`;
+    }
+
+    function sliceWidgetHTML(cfg){
+      return `<div class="widget" data-w="slice">
+        <div class="wrow">s[<input class="ixIn" type="number" min="${cfg.min}" max="${cfg.max}" value="0">]
+          <button class="btn ixRun">Run</button></div>
+        <div class="ixfb"></div>
+      </div>`;
+    }
+    function predictWidgetHTML(cfg){
+      const optBtns=cfg.options.map((o,i)=>`<button class="wopt" data-i="${i}">${escapeHTML(o)}</button>`).join('');
+      return `<div class="widget" data-w="predict">
+        <div class="wopts">${optBtns}</div>
+        <div class="explain pxExp"></div>
+      </div>`;
+    }
+
+    function buildSlide(seg){
+      const s=document.createElement('section');
+      s.className='slide'; s.dataset.seg=seg.id;
+      const eye=seg.eyebrow?`<div class="eyebrow">${seg.eyebrow}</div>`:'';
+
+      if(seg.scene==='title' || seg.scene==='recap'){
+        if(seg.scene==='recap'){
+          const lis=seg.recap_points.map((p,i)=>`<li><span class="n">${i+1}</span><span>${p}</span></li>`).join('');
+          s.innerHTML=`${eye}<h1>${seg.heading||''}</h1><ul class="vrecap">${lis}</ul>`;
+        }else{
+          s.innerHTML=`${eye}<h1>${seg.heading}</h1>${seg.sub?`<p class="sub">${seg.sub}</p>`:''}`;
+        }
+      }
+      else if(seg.scene==='grid'){
+        const cap=seg.caption?`<div class="caption">${seg.caption}</div>`:'';
+        let inner=`${eye}${cap}${gridHTML(seg.grid)}`;
+        if(seg.kind==='narration') inner+=`<div class="expr">${seg.expr||''}</div>`;
+        if(seg.kind==='interactive'&&seg.widget==='slice_cell') inner+=sliceWidgetHTML(seg.config);
+        if(seg.kind==='interactive'&&seg.widget==='predict') inner+=predictWidgetHTML(seg.config);
+        s.innerHTML=inner;
+      }
+      else if(seg.scene==='compare'){
+        const c=seg.compare;
+        const col=(d)=>`<div class="cmpcol">
+            <div class="cmplabel">${d.label}</div>
+            ${gridHTML({word:c.word,reveal_index:true})}
+            <div class="cmpres">→ ${d.result}</div><div class="cmptag">${d.tag}</div>
+          </div>`;
+        s.innerHTML=`${eye}<div class="caption">${seg.caption||''}</div>
+          <div class="compare">${col(c.left)}${col(c.right)}</div>`;
+      }
+      else if(seg.scene==='code_grid'){
+        const cap=seg.caption?`<div class="caption">${seg.caption}</div>`:'';
+        const gridCfg=Object.assign({compact:true}, seg.grid||{});
+        s.innerHTML=`${eye}${cap}
+          ${codeBlockHTML(seg.code, seg.active_line)}
+          ${gridHTML(gridCfg)}
+          <div class="expr">${seg.expr||''}</div>`;
+      }
+      else if(seg.scene==='code_live'){
+        const cap=seg.caption?`<div class="caption">${seg.caption}</div>`:'';
+        s.innerHTML=`${eye}${cap}${pyodideWidgetHTML(seg.config)}`;
+      }
+      canvas.appendChild(s);
+      return s;
+    }
+
+    /* ---------- per-scene animation (cue-list model, seekable) ---------- */
+    function setHighlight(slide, list, mode){
+      slide.querySelectorAll('.cell').forEach(c=>{
+        c.classList.remove('hot','span');
+        const i=+c.dataset.i;
+        if(list&&list.includes(i)) c.classList.add(mode==='span'?'span':'hot');
+      });
+    }
+    function setPointer(slide, pos){
+      slide.querySelectorAll('.pointer').forEach(p=>p.classList.remove('show'));
+      if(pos==null) return;
+      const cell=slide.querySelector(`.cell[data-i="${pos}"]`);
+      if(cell) cell.querySelector('.pointer').classList.add('show');
+    }
+
+    function buildCues(slide, seg, durSec){
+      const cues=[];
+      const idxEls=[...slide.querySelectorAll('.idx')];
+      const negEls=[...slide.querySelectorAll('.nidx')];
+      if(seg.grid?.reveal_index){
+        idxEls.forEach((el,i)=>cues.push({t:120*i+150, fn:()=>el.classList.add('show')}));
+      }
+      if(seg.grid?.reveal_negative){
+        const baseT=120*idxEls.length+250;
+        negEls.forEach((el,i)=>{
+          const order = seg.grid.walk_from_end ? (negEls.length-1-i) : i;
+          cues.push({t:baseT+120*order, fn:()=>el.classList.add('show')});
+        });
+      }
+      if(seg.expr_steps && seg.expr_steps.length){
+        const exprEl=slide.querySelector('.expr');
+        seg.expr_steps.forEach(st=>{
+          const t=Math.max(0,(st.at||0)*durSec*1000);
+          cues.push({t, fn:()=>{
+            setHighlight(slide, st.highlight, 'hot');
+            setPointer(slide, st.pointer);
+            if(exprEl && st.expr!=null) exprEl.innerHTML=st.expr;
+          }});
+        });
+      } else if(seg.grid && seg.grid.highlight){
+        cues.push({t:400, fn:()=>{ setHighlight(slide, seg.grid.highlight,'hot'); setPointer(slide, seg.grid.pointer); }});
+      }
+      if(seg.scene==='compare'){
+        const cols=[...slide.querySelectorAll('.cmpcol')]; const c=seg.compare;
+        cues.push({t:500, fn:()=>setHighlight(cols[0], c.left.highlight,'hot')});
+        cues.push({t:1400, fn:()=>setHighlight(cols[1], c.right.highlight,'span')});
+      }
+      if(seg.scene==='recap'){
+        slide.querySelectorAll('.vrecap li').forEach((li,i)=>
+          cues.push({t:400+500*i, fn:()=>li.classList.add('in')}));
+      }
+      cues.sort((a,b)=>a.t-b.t);
+      return cues;
+    }
+
+    function resetSceneVisuals(slide){
+      slide.querySelectorAll('.idx,.nidx').forEach(e=>e.classList.remove('show'));
+      slide.querySelectorAll('.cell').forEach(c=>c.classList.remove('hot','span'));
+      slide.querySelectorAll('.pointer').forEach(p=>p.classList.remove('show'));
+      slide.querySelectorAll('.vrecap li').forEach(li=>li.classList.remove('in'));
+    }
+
+    function applyCuesUpTo(slide, posMs){
+      resetSceneVisuals(slide);
+      sceneCues.forEach(c=>{ if(c.t<=posMs) c.fn(); });
+    }
+
+    /* ---------- interactive wiring ---------- */
+    function wireInteractive(slide, seg){
+      if(seg.widget==='slice_cell'){
+        const inp=slide.querySelector('.ixIn'), run=slide.querySelector('.ixRun'), fb=slide.querySelector('.ixfb');
+        const word=seg.config.word;
+        const doRun=()=>{
+          let v=parseInt(inp.value,10);
+          if(isNaN(v)||v<seg.config.min||v>seg.config.max){ fb.style.color='#ff9a9a'; fb.textContent=`Pick 0 to ${seg.config.max}`; return; }
+          setHighlight(slide,[v],'hot'); setPointer(slide,v);
+          fb.style.color='var(--pgreen)'; fb.textContent=`s[${v}] → '${word[v]}'`;
+        };
+        run.onclick=doRun;
+        inp.onkeydown=e=>{ if(e.key==='Enter') doRun(); };
+      }
+      if(seg.widget==='predict'){
+        const exp=slide.querySelector('.pxExp');
+        slide.querySelectorAll('.wopt').forEach(btn=>{
+          btn.onclick=()=>{
+            const i=+btn.dataset.i, correct=seg.config.correct_index;
+            slide.querySelectorAll('.wopt').forEach(b=>b.style.pointerEvents='none');
+            if(i===correct){ btn.classList.add('correct'); }
+            else{ btn.classList.add('wrong'); slide.querySelectorAll('.wopt')[correct].classList.add('correct'); }
+            setHighlight(slide, seg.config.reveal_highlight,'hot');
+            setPointer(slide, seg.config.reveal_highlight[0]);
+            exp.textContent=seg.config.explanation;
+          };
+        });
+      }
+      if(seg.widget==='pyodide_cell'){
+        const runBtn=slide.querySelector('.pyrun');
+        const status=slide.querySelector('.pystatus');
+        const out=slide.querySelector('.pyout');
+        const code=slide.querySelector('.pycode');
+
+        const markReady=()=>{ status.textContent='Python ready'; status.classList.add('ready'); runBtn.disabled=false; };
+        if(_pyodide){ markReady(); }
+        else{
+          runBtn.disabled=true; status.textContent='loading Python…';
+          ensurePyodide(markReady, (msg)=>{ status.textContent=msg; });
+        }
+
+        if(runBtn.dataset.wired==='1') return;
+        runBtn.dataset.wired='1';
+        const run=async ()=>{
+          out.classList.remove('err'); out.textContent='running…';
+          try{
+            const py=await ensurePyodide();
+            py.runPython(`import sys,io\n_b=io.StringIO()\nsys.stdout=_b`);
+            let result;
+            try{ result=py.runPython(code.value); }
+            finally{ py.runPython(`sys.stdout=sys.__stdout__`); }
+            let printed=py.runPython(`_b.getvalue()`);
+            let text=(printed||'');
+            if(result!==undefined && result!==null && String(result)!=='undefined' && text==='') text=String(result);
+            out.textContent = text!=='' ? text : '(no output — add a print())';
+          }catch(e){
+            out.classList.add('err');
+            out.textContent=String(e.message||e).split('\n').slice(-6).join('\n');
+          }
+        };
+        runBtn.onclick=run;
+      }
+    }
+
+    /* ---------- playback engine (clock-based, seekable) ---------- */
+    function stopClock(){ if(rafId){ cancelAnimationFrame(rafId); rafId=null; } }
+    function stopPlayback(){
+      stopClock();
+      if(usingAudio && audioEl){ audioEl.pause(); }
+      waiting=false; ixWait.classList.remove('show');
+    }
+
+    function showSlide(i){
+      canvas.querySelectorAll('.slide').forEach(s=>s.classList.remove('on'));
+      const seg=SCRIPT.segments[i];
+      const slide=canvas.querySelector(`.slide[data-seg="${seg.id}"]`);
+      slide.classList.add('on');
+      segLabel.textContent=`${i+1} / ${SCRIPT.segments.length} · ${seg.eyebrow||''}`;
+      updateTimeline(i);
+      prevBtn.disabled = i<=0;
+      nextBtn.disabled = i>=SCRIPT.segments.length-1;
+      return slide;
+    }
+    function durationFor(i){
+      if(usingAudio && manifest?.segments?.[i]?.duration) return manifest.segments[i].duration;
+      return SCRIPT.segments[i].est_seconds;
+    }
+
+    function updateScrub(){
+      const pct = segDur>0 ? Math.min(100,(segPos/segDur)*100) : 0;
+      scrubFill.style.width=pct+'%';
+      scrubHead.style.left=pct+'%';
+      timeLabel.textContent=`${fmtTime(segPos)} / ${fmtTime(segDur)}`;
+    }
+
+    function renderAt(posMs){
+      if(curSlide) applyCuesUpTo(curSlide, posMs);
+      updateScrub();
+    }
+
+    function tick(ts){
+      if(destroyed) return;
+      if(paused||waiting){ lastTs=ts; rafId=requestAnimationFrame(tick); return; }
+      if(!lastTs) lastTs=ts;
+      const dt=(ts-lastTs)/1000; lastTs=ts;
+      if(usingAudio && audioEl && !audioEl.paused){
+        segPos=audioEl.currentTime;
+      } else {
+        segPos+=dt;
+      }
+      renderAt(segPos*1000);
+      if(segPos>=segDur-0.02){
+        segPos=segDur; renderAt(segDur*1000);
+        onSegmentEnd(); return;
+      }
+      rafId=requestAnimationFrame(tick);
+    }
+
+    function onSegmentEnd(){
+      stopClock();
+      const seg=SCRIPT.segments[idx];
+      if(seg.kind==='interactive'){ enterWaitState(); }
+      else if(idx<SCRIPT.segments.length-1){ playIndex(idx+1); }
+      else finish();
+    }
+
+    function playIndex(i){
+      stopPlayback();
+      paused=false; waiting=false; lastTs=0;
+      toggleBtn.textContent='⏸ Pause';
+      if(i>=SCRIPT.segments.length){ finish(); return; }
+      idx=i;
+      curSeg=SCRIPT.segments[i];
+      curSlide=showSlide(i);
+      segDur=durationFor(i);
+      segPos=0;
+      sceneCues=buildCues(curSlide, curSeg, segDur);
+      if(curSeg.kind==='interactive') wireInteractive(curSlide, curSeg);
+      renderAt(0);
+      if(usingAudio && audioEl){
+        audioEl.src=`${base}/audio/${curSeg.id}.mp3?v=${audioBust}`;
+        audioEl.currentTime=0; audioEl.play().catch(()=>{});
+      }
+      rafId=requestAnimationFrame(tick);
+    }
+
+    function seekFrac(frac){
+      if(!curSeg) return;
+      frac=Math.max(0,Math.min(1,frac));
+      segPos=frac*segDur;
+      if(usingAudio && audioEl){ try{ audioEl.currentTime=segPos; }catch(e){} }
+      renderAt(segPos*1000);
+      lastTs=0;
+      if(waiting && frac<0.999){ waiting=false; ixWait.classList.remove('show'); toggleBtn.textContent='⏸ Pause'; if(!rafId) rafId=requestAnimationFrame(tick); }
+    }
+
+    function jumpTo(i){
+      i=Math.max(0,Math.min(SCRIPT.segments.length-1,i));
+      playIndex(i);
+    }
+
+    /* ---------- timeline ---------- */
+    function buildTimeline(){
+      timeline.innerHTML='';
+      SCRIPT.segments.forEach((seg,i)=>{
+        const t=document.createElement('div');
+        t.className='ptick'+(seg.kind==='interactive'?' ix':'');
+        const kindTag = seg.kind==='interactive' ? ' · interactive' : '';
+        t.innerHTML=`<span class="tip"><span class="num">${i+1}</span> ${seg.eyebrow||seg.scene}${kindTag}</span>`;
+        t.onclick=()=>jumpTo(i);
+        timeline.appendChild(t);
+      });
+    }
+    function updateTimeline(active){
+      [...timeline.children].forEach((t,i)=>{
+        t.classList.toggle('active', i===active);
+        t.classList.toggle('done', i<active);
+      });
+    }
+
+    function enterWaitState(){
+      waiting=true; ixWait.classList.add('show');
+      segPos=segDur; updateScrub();
+      toggleBtn.textContent='▸ Continue';
+    }
+    function leaveWaitState(){
+      waiting=false; ixWait.classList.remove('show');
+      toggleBtn.textContent='⏸ Pause';
+      playIndex(idx+1);
+    }
+
+    function finish(){
+      stopClock(); toggleBtn.textContent='✓ Done'; segLabel.textContent='Complete';
+      if(opts.onFinish) opts.onFinish();
+    }
+
+    function pause(){
+      paused=true;
+      if(usingAudio&&audioEl) audioEl.pause();
+      toggleBtn.textContent='▶ Resume';
+    }
+    function resume(){
+      paused=false; lastTs=0;
+      toggleBtn.textContent='⏸ Pause';
+      if(usingAudio&&audioEl) audioEl.play().catch(()=>{});
+      if(!rafId) rafId=requestAnimationFrame(tick);
+    }
+
+    toggleBtn.onclick=()=>{
+      if(waiting){ leaveWaitState(); return; }
+      paused?resume():pause();
+    };
+    prevBtn.onclick=()=>{ if(idx>0) jumpTo(idx-1); };
+    nextBtn.onclick=()=>{ if(idx<SCRIPT.segments.length-1) jumpTo(idx+1); };
+    $('.replay').onclick=()=>jumpTo(0);
+    const fsBtn=$('.fs');
+    function toggleFullscreen(){
+      if(document.fullscreenElement===stage){ document.exitFullscreen(); }
+      else{ stage.requestFullscreen().catch(()=>{}); }
+    }
+    fsBtn.onclick=toggleFullscreen;
+    function onFsChange(){
+      fsBtn.textContent = document.fullscreenElement===stage ? '🗗' : '⛶';
+      fsBtn.title = document.fullscreenElement===stage ? 'Exit fullscreen (f)' : 'Fullscreen (f)';
+    }
+    document.addEventListener('fullscreenchange',onFsChange);
+
+    /* ---------- scrubber seeking ---------- */
+    function fracFromEvent(e){
+      const track=scrubber.querySelector('.scrub-track');
+      const r=track.getBoundingClientRect();
+      const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+      return r.width>0 ? x/r.width : 0;
+    }
+    function startDrag(e){
+      if(!started||!curSeg) return;
+      dragging=true; scrubber.classList.add('dragging');
+      seekFrac(fracFromEvent(e));
+      e.preventDefault();
+    }
+    function moveDrag(e){ if(dragging) seekFrac(fracFromEvent(e)); }
+    function endDrag(){ dragging=false; scrubber.classList.remove('dragging'); }
+    scrubber.addEventListener('mousedown',startDrag);
+    document.addEventListener('mousemove',moveDrag);
+    document.addEventListener('mouseup',endDrag);
+    scrubber.addEventListener('touchstart',startDrag,{passive:false});
+    document.addEventListener('touchmove',moveDrag,{passive:false});
+    document.addEventListener('touchend',endDrag);
+
+    /* ---------- keyboard (delegated from portal) ---------- */
+    function kb(e){
+      if(!started||destroyed) return;
+      if(e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA') return;
+      if(e.key===' '){ e.preventDefault(); toggleBtn.click(); }
+      else if(e.key==='ArrowLeft'){ e.preventDefault(); prevBtn.click(); }
+      else if(e.key==='ArrowRight'){ e.preventDefault(); nextBtn.click(); }
+      else if(e.key==='f' || e.key==='F'){ e.preventDefault(); toggleFullscreen(); }
+    }
+
+    /* ---------- boot ---------- */
+    async function loadManifest(){
+      try{ const r=await fetch(`${base}/audio/manifest.json`,{cache:'no-store'}); if(r.ok){ manifest=await r.json(); usingAudio=true; } }
+      catch(e){ usingAudio=false; }
+    }
+    async function boot(){
+      try{
+        SCRIPT=await (await fetch(`${base}/script.json`,{cache:'no-store'})).json();
+      }catch(e){
+        gate.innerHTML=`<h2>Could not load script.json</h2>
+          <p>Serve this folder over HTTP — from the project root run
+          <code>python -m http.server 8000</code> and open
+          <code>http://localhost:8000/portal.html</code></p>`;
+        return;
+      }
+      SCRIPT.segments.forEach(buildSlide);
+      buildTimeline();
+    }
+    $('.start').onclick=async ()=>{
+      if(!SCRIPT) return;
+      audioBust=Date.now();
+      // ONE audio element created inside the user gesture, then reused per
+      // segment — keeps autoplay unlocked for auto-advanced segments.
+      audioEl=new Audio(); audioEl.preload='auto';
+      await loadManifest();
+      if(!usingAudio){ audioEl=null; }
+      gate.style.display='none'; controls.style.display='flex';
+      started=true;
+      if(SCRIPT.segments.some(s=>s.widget==='pyodide_cell')) ensurePyodide();
+      playIndex(0);
+    };
+    boot();
+
+    function destroy(){
+      destroyed=true;
+      stopPlayback();
+      if(document.fullscreenElement===stage) document.exitFullscreen().catch(()=>{});
+      document.removeEventListener('fullscreenchange',onFsChange);
+      if(audioEl){ audioEl.pause(); audioEl.src=''; audioEl=null; }
+      document.removeEventListener('mousemove',moveDrag);
+      document.removeEventListener('mouseup',endDrag);
+      document.removeEventListener('touchmove',moveDrag);
+      document.removeEventListener('touchend',endDrag);
+      mount.innerHTML='';
+    }
+
+    return { destroy, kb };
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // PORTAL APP
+  // Arc: 1 motivation · 2 concept explainer · 3 worked example ·
+  //      4 adaptive practice · 5 flashcards · 6 recap · 7 cheatsheet
+  // Steps 1–3 embed the interactive script-driven players.
+  // ════════════════════════════════════════════════════════════════════
+
+  const App = (() => {
+
+    const STEPS = [
+      { id: "motivation", label: "Why strings matter", kind: "player",
+        base: "motivation video",
+        file: "string_indexing.py — motivation",
+        gateBadge: "String Indexing · Motivation",
+        gateTitle: "Every app reads text one character at a time",
+        gateDesc: "A 90-second hook: how programs reach into text and grab exactly the piece they need.",
+        lead: "Interactive video — scrub the progress bar, click the segment timeline, or use space / ← / → on your keyboard." },
+      { id: "concept", label: "Indexes & slices explained", kind: "player",
+        base: "concept explainer",
+        file: "string_indexing.py — concept explainer",
+        gateBadge: "String Indexing · Concept Explainer",
+        gateTitle: "How indexing works",
+        gateDesc: "A 3-minute walk-through with two spots where you try it yourself.",
+        lead: "This video pauses twice for you to try it yourself — run an index, predict an answer — then press Continue." },
+      { id: "worked", label: "Worked example", kind: "player",
+        base: "worked example",
+        file: "string_indexing.py — worked example",
+        gateBadge: "String Indexing · Worked Example",
+        gateTitle: "Slice a real string, step by step",
+        gateDesc: "Watch the code being built, then run <strong>real Python in your browser</strong> to experiment.",
+        lead: "Watch an expert slice a real email address. At the end you get a live Python cell — real code running in your browser." },
+      { id: "practice", label: "Adaptive practice", kind: "practice" },
+      { id: "flashcards", label: "Flashcards", kind: "flashcards" },
+      { id: "recap", label: "Recap", kind: "player",
+        base: "recap video",
+        file: "string_indexing.py — recap",
+        gateBadge: "String Indexing · Recap",
+        gateTitle: "Everything you learned, in two minutes",
+        gateDesc: "One quick pass over the five takeaways, with one last prediction to lock it in.",
+        lead: "A 2-minute interactive recap — it pauses once for a final prediction before the takeaways.",
+        extra: `
+          <div class="recap-points">
+            <h3>The five takeaways</h3>
+            <ol>
+              <li>Every character has an index, starting at <strong>0</strong>. <code>s[0]</code> is first, <code>s[-1]</code> is last.</li>
+              <li>Square brackets give access — one number, one character.</li>
+              <li>A colon gives a range: <code>s[start:stop]</code> — and the <strong>stop is exclusive</strong>.</li>
+              <li>Slicing is safe — out-of-bounds slices never crash.</li>
+              <li>Strings are <strong>immutable</strong> — slicing returns a new string, never modifies the original.</li>
+            </ol>
+          </div>` },
+      { id: "cheatsheet", label: "Cheatsheet (keep this!)", kind: "cheatsheet" },
+    ];
+
+    let currentStep = 0;
+    let completed = new Set();
+    let activePlayer = null;
+
+    // ── Persistence ──────────────────────────────────────────────────
+    function saveProgress() {
+      try { localStorage.setItem("sis-portal-progress", JSON.stringify([...completed])); } catch (e) { /* in-memory only */ }
+    }
+    function loadProgress() {
+      try {
+        const raw = localStorage.getItem("sis-portal-progress");
+        if (raw) completed = new Set(JSON.parse(raw));
+      } catch (e) { /* ignore */ }
+    }
+
+    // ── Navigation ───────────────────────────────────────────────────
+    function goTo(i) {
+      currentStep = Math.max(0, Math.min(STEPS.length - 1, i));
+      render();
+    }
+    function goToId(id) {
+      const i = STEPS.findIndex(s => s.id === id);
+      if (i >= 0) goTo(i);
+    }
+    function markComplete(i, advance = true) {
+      completed.add(STEPS[i].id);
+      saveProgress();
+      if (advance && i < STEPS.length - 1) goTo(i + 1);
+      else render();
+    }
+
+    // ── Rendering ────────────────────────────────────────────────────
+    function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+    function render() {
+      if (activePlayer) { activePlayer.destroy(); activePlayer = null; }
+      renderSidebar();
+      renderStep();
+      window.scrollTo({ top: 0 });
+    }
+
+    function renderSidebar() {
+      const nav = document.getElementById("arc-nav");
+      nav.innerHTML = STEPS.map((s, i) => `
+        <button class="nav-step ${i === currentStep ? "active" : ""} ${completed.has(s.id) ? "done" : ""}"
+                onclick="App.goTo(${i})">
+          <span class="nav-dot">${completed.has(s.id) ? "✓" : i + 1}</span>
+          <span class="nav-label">${s.label}</span>
+        </button>`).join("");
+
+      const pct = Math.round((completed.size / STEPS.length) * 100);
+      document.getElementById("arc-progress-fill").style.width = pct + "%";
+      document.getElementById("arc-progress-label").textContent = pct + "% complete";
+    }
+
+    // ── Step rendering ────────────────────────────────────────────────
+    function renderStep() {
+      const main = document.getElementById("step-content");
+      const step = STEPS[currentStep];
+
+      switch (step.kind) {
+
+        case "player": {
+          main.innerHTML = `
+            <div class="step-head">
+              <div class="step-kicker">Step ${currentStep + 1} · Interactive video</div>
+              <h2>${step.label}</h2>
+              <p class="step-lead">${step.lead}</p>
+            </div>
+            <div class="player-mount"></div>
+            <p class="player-note">Striped marks on the segment timeline are interactive moments. The step is marked complete automatically when the video finishes — or mark it yourself below.</p>
+            ${step.extra || ""}
+            <button class="btn-primary step-done-btn" onclick="App.markComplete(${currentStep})">Mark complete & continue →</button>`;
+          activePlayer = createPlayer(main.querySelector(".player-mount"), step.base, {
+            fileLabel: step.file,
+            gateBadge: step.gateBadge,
+            gateTitle: step.gateTitle,
+            gateDesc: step.gateDesc,
+            onFinish: () => { completed.add(step.id); saveProgress(); renderSidebar(); },
+          });
+          break;
+        }
+
+        case "practice": {
+          main.innerHTML = `
+            <div class="step-head">
+              <div class="step-kicker">Step ${currentStep + 1} · Practice session</div>
+            </div>
+            <div class="practice-hint">Stuck on syntax? The <strong>cheatsheet</strong> is one click away — bottom-right corner. Using a reference is a skill, not a cheat.</div>
+            <div id="practice-root"></div>`;
+          Practice.renderIntro();
+          break;
+        }
+
+        case "flashcards": {
+          completed.add("practice"); saveProgress(); renderSidebar();
+          renderFlashcards(main);
+          break;
+        }
+
+        case "cheatsheet": {
+          renderCheatsheet(main);
+          break;
+        }
+      }
+    }
+
+    // ── Cheatsheet (content shared by step + drawer) ─────────────────
+    function cheatsheetCardsHTML() {
+      return `
+        <div class="cs-grid2">
+          <section class="cs-card">
+            <h3>Indexing</h3>
+            <pre class="q-code">s = "python"
+
+s[0]    # 'p'  — first character
+s[2]    # 't'
+s[5]    # 'n'  — last (length−1)</pre>
+            <div class="cs-note">Indices start at <strong>0</strong>. For a string of length n, valid indices are 0 to n−1.</div>
+          </section>
+
+          <section class="cs-card">
+            <h3>Negative indexing</h3>
+            <pre class="q-code">s = "python"
+
+s[-1]   # 'n'  — last character
+s[-2]   # 'o'  — second to last
+s[-6]   # 'p'  — same as s[0]</pre>
+            <div class="cs-note">Count backwards from the end, starting at −1. Works on strings of any length.</div>
+          </section>
+
+          <section class="cs-card">
+            <h3>Slicing</h3>
+            <pre class="q-code">s[start:stop]       # stop EXCLUSIVE
+s[1:4]    # 'yth' — indices 1,2,3
+s[:3]     # 'pyt' — from start
+s[3:]     # 'hon' — to end
+s[:]      # 'python' — full copy</pre>
+            <div class="cs-note">Slice length = stop − start. Leave either side blank for the default.</div>
+          </section>
+
+          <section class="cs-card">
+            <h3>Step</h3>
+            <pre class="q-code">s[start:stop:step]
+
+s[::2]    # 'pto'    — every 2nd
+s[1::2]   # 'yhn'    — every 2nd, from 1
+s[::-1]   # 'nohtyp' — REVERSED</pre>
+            <div class="cs-note">A negative step walks backwards. <code>s[::-1]</code> is the canonical one-line reversal.</div>
+          </section>
+
+          <section class="cs-card">
+            <h3>Common patterns</h3>
+            <pre class="q-code">s[:3]      # first 3 characters
+s[-3:]     # last 3 characters
+s[1:-1]    # strip first &amp; last
+s[::-1]    # reverse
+s[i:i+n]   # n chars from index i</pre>
+          </section>
+
+          <section class="cs-card">
+            <h3>Edge cases &amp; gotchas</h3>
+            <pre class="q-code">s = "python"   # length 6
+
+s[10]      # ✗ IndexError!
+s[2:100]   # ✓ 'thon' — slices are safe
+s[4:2]     # ✓ ''     — empty, no error
+s[0] = "P" # ✗ TypeError — immutable!
+"P"+s[1:]  # ✓ build a new string</pre>
+            <div class="cs-note"><strong>Indexing</strong> out of bounds crashes; <strong>slicing</strong> out of bounds doesn't. Strings can never be modified in place.</div>
+          </section>
+        </div>`;
+    }
+
+    function renderCheatsheet(main) {
+      main.innerHTML = `
+        <div class="step-head">
+          <div class="step-kicker">Step ${currentStep + 1} · Your revision reference</div>
+          <h2>String Indexing &amp; Slicing — Cheatsheet</h2>
+          <p class="step-lead">This is your take-away artifact. Bookmark it, print it, come back to it whenever you need a quick syntax check. It's also available anytime from the button in the corner.</p>
+        </div>
+        ${cheatsheetCardsHTML()}
+        <button class="btn-primary step-done-btn" onclick="App.markComplete(${currentStep}, false)">Finish topic ✓</button>`;
+    }
+
+    // ── Cheatsheet drawer (always available) ─────────────────────────
+    function toggleDrawer() {
+      document.getElementById("cs-drawer").classList.toggle("open");
+      document.getElementById("cs-drawer-backdrop").classList.toggle("on");
+    }
+
+    function initDrawer() {
+      const drawer = document.createElement("div");
+      drawer.innerHTML = `
+        <button class="cs-fab" onclick="App.toggleDrawer()" title="Open cheatsheet">≡ Cheatsheet</button>
+        <div class="cs-drawer-backdrop" id="cs-drawer-backdrop" onclick="App.toggleDrawer()"></div>
+        <aside class="cs-drawer" id="cs-drawer">
+          <div class="cs-drawer-head">
+            <strong>Quick reference</strong>
+            <button class="cs-drawer-close" onclick="App.toggleDrawer()">✕</button>
+          </div>
+          <div class="cs-drawer-body">${cheatsheetCardsHTML()}</div>
+        </aside>`;
+      document.body.appendChild(drawer);
+    }
+
+    // ── Flashcards ───────────────────────────────────────────────────
+    const FLASHCARDS = [
+      { front: "index", back: "The position number of a character in a string. Zero-based: the first character is at index 0." },
+      { front: "slice", back: "A substring extracted with s[start:stop] — includes start, excludes stop." },
+      { front: "negative index", back: "Counts from the end of the string. s[-1] is the last character, s[-2] second-to-last." },
+      { front: "step", back: "The third slice parameter: s[start:stop:step]. Controls the jump between characters. Negative step walks backwards." },
+      { front: "immutable", back: "Cannot be changed in place. Strings are immutable — indexing and slicing always return NEW strings." },
+      { front: "s = 'slice'\ns[1:4] → ?", back: "'lic' — indices 1, 2, 3. The stop index (4) is exclusive.", mono: true },
+      { front: "s = 'slice'\ns[::-1] → ?", back: "'ecils' — step −1 reverses the whole string.", mono: true },
+      { front: "s = 'slice'\ns[-2] → ?", back: "'c' — second character from the end.", mono: true },
+    ];
+
+    let fcIndex = 0, fcFlipped = false;
+
+    function renderFlashcards(main) {
+      const card = FLASHCARDS[fcIndex];
+      main.innerHTML = `
+        <div class="step-head">
+          <div class="step-kicker">Step ${currentStep + 1} · Flashcards · ${fcIndex + 1} of ${FLASHCARDS.length}</div>
+          <h2>Vocabulary &amp; code prediction</h2>
+          <p class="step-lead">Click the card to flip it. Say the answer out loud before flipping — retrieval is the point.</p>
+        </div>
+
+        <div class="fc-stage">
+          <div class="fc-card ${fcFlipped ? "flipped" : ""}" onclick="App.fcFlip()">
+            <div class="fc-face fc-front ${card.mono ? "fc-mono" : ""}">${esc(card.front)}</div>
+            <div class="fc-face fc-back">${esc(card.back)}</div>
+          </div>
+        </div>
+
+        <div class="fc-controls">
+          <button class="btn-secondary" onclick="App.fcPrev()" ${fcIndex === 0 ? "disabled" : ""}>← Prev</button>
+          <span class="fc-dots">${FLASHCARDS.map((_, i) => `<span class="fc-dot ${i === fcIndex ? "on" : ""}"></span>`).join("")}</span>
+          <button class="btn-secondary" onclick="App.fcNext()" ${fcIndex === FLASHCARDS.length - 1 ? "disabled" : ""}>Next →</button>
+        </div>
+
+        <button class="btn-primary step-done-btn" onclick="App.markComplete(${currentStep})">Mark complete & continue →</button>`;
+    }
+
+    function fcFlip() { fcFlipped = !fcFlipped; renderStep(); }
+    function fcNext() { if (fcIndex < FLASHCARDS.length - 1) { fcIndex++; fcFlipped = false; renderStep(); } }
+    function fcPrev() { if (fcIndex > 0) { fcIndex--; fcFlipped = false; renderStep(); } }
+
+    // ── Keyboard: delegate to the active player ──────────────────────
+    document.addEventListener("keydown", e => { if (activePlayer) activePlayer.kb(e); });
+
+    // ── Init ─────────────────────────────────────────────────────────
+    function init() {
+      loadProgress();
+      initDrawer();
+      render();
+    }
+
+    return {
+      init, goTo, goToId, markComplete, toggleDrawer,
+      fcFlip, fcNext, fcPrev,
+    };
+  })();
+
+  document.addEventListener("DOMContentLoaded", App.init);
+  </script>
+
+</body>
+</html>

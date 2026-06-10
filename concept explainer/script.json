@@ -1,0 +1,127 @@
+{
+  "topic": "String Indexing",
+  "role": "concept-explainer",
+  "variant": "concept-explainer.whiteboard",
+  "target_duration_seconds": 180,
+  "learning_objective": "Build a mental model of zero-based and negative string indexing, and distinguish indexing (one character) from slicing (a substring).",
+  "word": "Python",
+  "voice_settings": {
+    "stability": 0.5,
+    "similarity_boost": 0.75,
+    "style": 0.0,
+    "use_speaker_boost": true
+  },
+  "segments": [
+    {
+      "id": "seg_01",
+      "kind": "narration",
+      "scene": "title",
+      "eyebrow": "Concept · String Indexing",
+      "heading": "A string is a row of <em>positions.</em>",
+      "sub": "Every character sits at a numbered slot. Learn the numbers, and you can reach any character you want.",
+      "narration": "In the last video we saw that programs pull single characters out of text all the time. Now let's see exactly how. The key idea is simple: a string is just a row of positions, and every character sits in a numbered slot.",
+      "est_seconds": 18
+    },
+    {
+      "id": "seg_02",
+      "kind": "narration",
+      "scene": "grid",
+      "eyebrow": "Zero-based indexing",
+      "caption": "Counting starts at <strong>0</strong>, not 1.",
+      "grid": { "word": "Python", "reveal_index": true, "highlight": [] },
+      "narration": "Here's the word Python. Python numbers its positions starting from zero, not one. So the very first character, capital P, lives at index zero. The next, lowercase y, is at index one. And we keep counting: t is two, h is three, o is four, n is five. Six characters, indices zero through five.",
+      "est_seconds": 24
+    },
+    {
+      "id": "seg_03",
+      "kind": "narration",
+      "scene": "grid",
+      "eyebrow": "Positive indexing",
+      "caption": "<code>s[i]</code> gives the character at position <code>i</code>.",
+      "grid": { "word": "Python", "reveal_index": true, "highlight": [0], "pointer": 0 },
+      "expr": "s[0] → <span class='res'>'P'</span>",
+      "narration": "To grab a character, you write the string, then the index in square brackets. s of zero reaches into position zero and hands you capital P. Want the third character? That's index two, because we started counting at zero. s of two gives you t.",
+      "expr_steps": [
+        { "at": 0.0, "highlight": [0], "pointer": 0, "expr": "s[0] → <span class='res'>'P'</span>" },
+        { "at": 0.62, "highlight": [2], "pointer": 2, "expr": "s[2] → <span class='res'>'t'</span>" }
+      ],
+      "est_seconds": 20
+    },
+    {
+      "id": "seg_04",
+      "kind": "interactive",
+      "widget": "slice_cell",
+      "scene": "grid",
+      "eyebrow": "Your turn",
+      "caption": "Type an index and run it.",
+      "grid": { "word": "Python", "reveal_index": true, "highlight": [] },
+      "prompt": "Try it yourself. Pick any index from 0 to 5, run it, and watch which character lights up. When you're ready, press Continue.",
+      "narration": "Your turn. Pick any index from zero to five, run it, and watch which character lights up. Take a moment, then press continue when you're ready.",
+      "est_seconds": 9,
+      "config": { "word": "Python", "mode": "index", "min": 0, "max": 5 }
+    },
+    {
+      "id": "seg_05",
+      "kind": "narration",
+      "scene": "grid",
+      "eyebrow": "Negative indexing",
+      "caption": "Negative numbers count from the <strong>end.</strong>",
+      "grid": { "word": "Python", "reveal_index": true, "reveal_negative": true, "highlight": [5], "pointer": 5, "walk_from_end": true },
+      "expr": "s[-1] → <span class='res'>'n'</span>",
+      "narration": "Now here's a Python trick that saves a lot of effort. You can count from the end using negative numbers. Minus one is the last character: s of minus one gives you n. Minus two is the second from last: s of minus two gives you o. You never have to know how long the string is to grab the ending.",
+      "expr_steps": [
+        { "at": 0.0, "highlight": [5], "pointer": 5, "expr": "s[-1] → <span class='res'>'n'</span>" },
+        { "at": 0.6, "highlight": [4], "pointer": 4, "expr": "s[-2] → <span class='res'>'o'</span>" }
+      ],
+      "est_seconds": 24
+    },
+    {
+      "id": "seg_06",
+      "kind": "interactive",
+      "widget": "predict",
+      "scene": "grid",
+      "eyebrow": "Predict",
+      "caption": "Before you peek — what does <code>s[-3]</code> return?",
+      "grid": { "word": "Python", "reveal_index": true, "reveal_negative": true, "highlight": [] },
+      "prompt": "Before revealing — what does s[-3] give you?",
+      "narration": "Quick prediction. Without running it, what does s of minus three return? Picture counting back from the end. Choose your answer, then reveal.",
+      "est_seconds": 10,
+      "config": {
+        "word": "Python",
+        "question": "What does s[-3] return?",
+        "options": ["'t'", "'h'", "'o'", "'y'"],
+        "correct_index": 1,
+        "reveal_highlight": [3],
+        "explanation": "Count back from the end: n is -1, o is -2, h is -3. So s[-3] is 'h' at position 3."
+      }
+    },
+    {
+      "id": "seg_07",
+      "kind": "narration",
+      "scene": "compare",
+      "eyebrow": "Indexing vs. slicing",
+      "caption": "One number → one character. <code>start:end</code> → a substring.",
+      "compare": {
+        "word": "Python",
+        "left": { "label": "s[1]", "highlight": [1], "result": "'y'", "tag": "one character" },
+        "right": { "label": "s[1:4]", "highlight": [1, 2, 3], "result": "'yth'", "tag": "a substring" }
+      },
+      "narration": "One last distinction. A single index, like s of one, returns exactly one character. But if you put two numbers separated by a colon, like s of one to four, you get a whole substring: the characters from position one up to, but not including, position four. That's called slicing, and it's the next thing we'll explore.",
+      "est_seconds": 26
+    },
+    {
+      "id": "seg_08",
+      "kind": "narration",
+      "scene": "recap",
+      "eyebrow": "Recap",
+      "heading": "Three things to remember",
+      "recap_points": [
+        "Counting starts at <strong>0</strong> — first character is <code>s[0]</code>.",
+        "Negative indices count from the end — <code>s[-1]</code> is the last.",
+        "One number is a character; <code>start:end</code> is a substring."
+      ],
+      "narration": "Let's lock it in. Three things. Counting starts at zero, so the first character is s of zero. Negative indices count from the end, so s of minus one is the last character. And a single number gives one character, while a range with a colon gives a substring. With that mental model, you're ready to start writing real indexing code.",
+      "est_seconds": 24
+    }
+  ]
+}

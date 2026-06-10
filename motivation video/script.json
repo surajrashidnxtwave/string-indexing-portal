@@ -1,0 +1,77 @@
+{
+  "topic": "String Indexing",
+  "role": "motivation",
+  "variant": "motivation-video.real-world-app",
+  "target_duration_seconds": 90,
+  "voice_settings": {
+    "stability": 0.5,
+    "similarity_boost": 0.75,
+    "style": 0.0,
+    "use_speaker_boost": true
+  },
+  "segments": [
+    {
+      "id": "seg_01",
+      "kind": "narration",
+      "scene": "title",
+      "eyebrow": "String Indexing",
+      "heading": "Every app reads text <em>one character at a time.</em>",
+      "sub": "A name. A date. A symbol. How does code grab just the piece it needs?",
+      "narration": "Every app you use is quietly reading text, one character at a time. The first letter of your name. The year inside a date. A single symbol in a password. So how does a program reach in and grab just the piece it needs?",
+      "est_seconds": 16
+    },
+    {
+      "id": "seg_02",
+      "kind": "narration",
+      "scene": "grid",
+      "eyebrow": "Profile badge",
+      "caption": "Reach straight to position <strong>0</strong> for her initial.",
+      "grid": { "word": "Alice", "reveal_index": true, "highlight": [0], "pointer": 0 },
+      "expr": "name[0] → <span class='res'>'A'</span>",
+      "narration": "Say a user signs up as Alice. The app wants just her initial for a profile badge. It doesn't read the whole name. It reaches straight to position zero and pulls out the single letter A.",
+      "est_seconds": 15
+    },
+    {
+      "id": "seg_03",
+      "kind": "narration",
+      "scene": "grid",
+      "eyebrow": "Show only the year",
+      "caption": "Slice out the first four characters.",
+      "grid": { "word": "2026-06-09", "reveal_index": true, "highlight": [0, 1, 2, 3] },
+      "expr": "date[0:4] → <span class='res'>'2026'</span>",
+      "narration": "Or take a date typed as 2026-06-09. To show only the year, the program slices out the first four characters. No guessing, no scanning the rest. Just the slice it asked for.",
+      "est_seconds": 14
+    },
+    {
+      "id": "seg_04",
+      "kind": "narration",
+      "scene": "grid",
+      "eyebrow": "Last character",
+      "caption": "Count backward from the end and land exactly on it.",
+      "grid": { "word": "Ready?", "reveal_index": true, "reveal_negative": true, "highlight": [5], "pointer": 5, "walk_from_end": true },
+      "expr": "msg[-1] → <span class='res'>'?'</span>",
+      "narration": "Even a chat app does this. To grab the last character of a message, maybe to check for a question mark, it counts backward from the end and lands exactly on it.",
+      "est_seconds": 13
+    },
+    {
+      "id": "seg_05",
+      "kind": "narration",
+      "scene": "title",
+      "eyebrow": "The skill",
+      "heading": "This is <em>string indexing.</em>",
+      "sub": "Every character lives at a numbered position. Name the positions, take what you want.",
+      "narration": "This is string indexing. Every character in a string lives at a numbered position, and you can pull out any one of them, or a range, just by naming the positions you want.",
+      "est_seconds": 14
+    },
+    {
+      "id": "seg_06",
+      "kind": "narration",
+      "scene": "title",
+      "eyebrow": "Used everywhere",
+      "heading": "Parsing, cleaning, validating — <em>it all starts here.</em>",
+      "sub": "Let's learn how to reach into a string and take exactly what you need.",
+      "narration": "It's one of the most-used skills in all of Python. Parsing files, cleaning data, validating input. It all starts here. So let's learn how to reach into a string and take exactly what you need.",
+      "est_seconds": 16
+    }
+  ]
+}

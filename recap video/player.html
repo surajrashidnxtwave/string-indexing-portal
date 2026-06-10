@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>String Indexing — Recap</title>
+<style>
+  :root{
+    --bg:#0d1b2a; --panel:#13263a; --ink:#e7ecf3; --dim:#8aa0b8; --line:#24405c;
+    --amber:#ffb454; --amber-soft:rgba(255,180,84,.16);
+    --green:#7ee787; --violet:#a78bfa; --violet-soft:rgba(167,139,250,.16);
+    --mono:'SFMono-Regular',ui-monospace,'Cascadia Code','JetBrains Mono',Consolas,monospace;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);
+    display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .stage{width:min(980px,95vw);aspect-ratio:16/9;background:var(--panel);
+    border:1px solid var(--line);border-radius:14px;position:relative;
+    box-shadow:0 30px 80px rgba(0,0,0,.5);overflow:hidden}
+  .chrome{height:38px;border-bottom:1px solid var(--line);display:flex;
+    align-items:center;gap:7px;padding:0 16px;color:var(--dim);
+    font-family:var(--mono);font-size:12px}
+  .dot{width:11px;height:11px;border-radius:50%}
+  .dot.r{background:#ff5f56}.dot.y{background:#ffbd2e}.dot.g{background:#27c93f}
+  .file{margin-left:10px}
+
+  .canvas{position:absolute;inset:38px 0 64px 0;display:flex;
+    align-items:center;justify-content:center;padding:3% 7%}
+  .slide{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;padding:4% 7%;text-align:center;
+    opacity:0;transform:translateY(12px);
+    transition:opacity .5s ease,transform .5s ease;
+    pointer-events:none;z-index:0}
+  .slide.on{opacity:1;transform:none;pointer-events:auto;z-index:1}
+
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--amber);margin-bottom:16px}
+  h1{font-size:clamp(22px,3.4vw,38px);font-weight:600;line-height:1.18;max-width:20ch}
+  h1 em{color:var(--amber);font-style:normal}
+  .sub{color:var(--dim);font-size:clamp(14px,1.6vw,18px);margin-top:16px;max-width:36ch;line-height:1.5}
+  .caption{color:var(--ink);font-size:clamp(15px,1.8vw,20px);margin-bottom:26px;font-weight:500}
+  .caption code,.caption strong{color:var(--amber);font-weight:600}
+  .caption code{font-family:var(--mono)}
+
+  /* indexed grid */
+  .grid{display:flex;gap:7px;font-family:var(--mono)}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:7px;position:relative}
+  .glyph{width:clamp(40px,5.6vw,62px);height:clamp(40px,5.6vw,62px);
+    display:flex;align-items:center;justify-content:center;font-size:clamp(20px,2.8vw,32px);
+    border:1px solid var(--line);border-radius:9px;background:#0e2034;
+    transition:all .4s cubic-bezier(.22,1,.36,1)}
+  .idx,.nidx{font-size:13px;color:var(--dim);transition:color .4s ease,opacity .5s ease;opacity:0}
+  .nidx{font-size:11px;color:#5f7a96}
+  .idx.show,.nidx.show{opacity:1}
+  .cell.hot .glyph{background:var(--amber-soft);border-color:var(--amber);color:var(--amber);
+    transform:translateY(-5px);box-shadow:0 10px 22px rgba(255,180,84,.28)}
+  .cell.hot .idx{color:var(--amber)} .cell.hot .nidx{color:var(--amber)}
+  .cell.span .glyph{background:var(--violet-soft);border-color:var(--violet);color:#d8c7ff}
+  /* compact grid for long strings (email etc.) */
+  .grid.compact{gap:3px}
+  .grid.compact .glyph{width:clamp(20px,2.4vw,30px);height:clamp(24px,3vw,36px);font-size:clamp(13px,1.5vw,18px);border-radius:5px}
+  .grid.compact .idx{font-size:10px} .grid.compact .nidx{font-size:9px}
+  .grid.compact .cell{gap:4px}
+  /* excluded cell — slice end is exclusive */
+  .cell.excluded .glyph{border-color:#ff6b6b;border-style:dashed;color:#ff9a9a;
+    background:rgba(255,107,107,.08);opacity:.85}
+  .cell.excluded .idx{color:#ff9a9a}
+
+  /* pointer arrow that travels */
+  .pointer{position:absolute;top:-30px;left:0;color:var(--amber);font-size:20px;
+    transition:transform .45s cubic-bezier(.22,1,.36,1),opacity .3s ease;opacity:0}
+  .pointer.show{opacity:1}
+
+  .expr{font-family:var(--mono);font-size:clamp(16px,2.1vw,24px);margin-top:26px;min-height:1.4em}
+  .expr .res{color:var(--green)} .expr .cmt{color:var(--dim)}
+
+  /* code block (worked example) */
+  .codeblock{font-family:var(--mono);background:#0a1622;border:1px solid var(--line);
+    border-radius:10px;padding:14px 16px;margin-bottom:22px;text-align:left;
+    min-width:min(440px,80vw);font-size:clamp(13px,1.6vw,17px)}
+  .codeline{display:flex;gap:14px;padding:3px 6px;border-radius:5px;color:var(--dim);
+    transition:background .3s,color .3s}
+  .codeline .lnum{color:#456;width:1.2em;text-align:right;user-select:none}
+  .codeline .ltext{color:#c8d6e5;white-space:pre}
+  .codeline.active{background:var(--amber-soft)}
+  .codeline.active .ltext{color:var(--ink)}
+  .codeline.active .lnum{color:var(--amber)}
+
+  /* pyodide live cell */
+  .pyw{width:min(560px,86vw);gap:10px}
+  .pyeditor{width:100%;background:#0a1622;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .pycode{width:100%;min-height:120px;background:transparent;color:#c8d6e5;border:none;
+    font-family:var(--mono);font-size:14px;padding:14px;resize:vertical;line-height:1.5}
+  .pycode:focus{outline:none}
+  .pyrow{display:flex;align-items:center;gap:14px;width:100%}
+  .pystatus{font-family:var(--mono);font-size:12px;color:var(--dim)}
+  .pystatus.ready{color:var(--green)}
+  .pyout{width:100%;min-height:2.4em;max-height:140px;overflow:auto;background:#0a1622;
+    border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-family:var(--mono);
+    font-size:14px;color:var(--green);white-space:pre-wrap;text-align:left;margin:0}
+  .pyout.err{color:#ff9a9a}
+  .pyhint{font-size:13px;color:var(--dim);font-family:var(--mono)}
+
+  /* compare scene */
+  .compare{display:flex;gap:clamp(20px,5vw,64px);align-items:flex-start}
+  .cmpcol{display:flex;flex-direction:column;align-items:center;gap:14px}
+  .cmplabel{font-family:var(--mono);font-size:clamp(15px,1.9vw,21px);color:var(--ink)}
+  .cmptag{font-size:13px;color:var(--dim)}
+  .cmpres{font-family:var(--mono);color:var(--green);font-size:clamp(14px,1.7vw,19px)}
+
+  /* recap */
+  .recap{display:flex;flex-direction:column;gap:16px;max-width:30ch;text-align:left;margin-top:6px}
+  .recap li{list-style:none;display:flex;gap:12px;align-items:flex-start;
+    font-size:clamp(14px,1.7vw,18px);line-height:1.4;opacity:0;transform:translateX(-10px);
+    transition:opacity .5s ease,transform .5s ease}
+  .recap li.in{opacity:1;transform:none}
+  .recap .n{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--amber-soft);
+    color:var(--amber);font-family:var(--mono);font-size:13px;display:flex;
+    align-items:center;justify-content:center;margin-top:1px}
+  .recap code{font-family:var(--mono);color:var(--amber)}
+  .recap strong{color:var(--amber)}
+
+  /* interactive widgets */
+  .widget{display:flex;flex-direction:column;align-items:center;gap:18px;margin-top:24px}
+  .row{display:flex;gap:10px;align-items:center;font-family:var(--mono)}
+  .row input{width:64px;padding:9px;text-align:center;background:#0e2034;color:var(--ink);
+    border:1px solid var(--line);border-radius:8px;font-family:var(--mono);font-size:17px}
+  .row input:focus{outline:none;border-color:var(--amber)}
+  .btn{background:var(--amber);color:#0d1b2a;border:none;font-weight:600;
+    padding:10px 22px;border-radius:8px;font-size:15px;cursor:pointer;font-family:var(--sans)}
+  .btn.ghost{background:none;color:var(--ink);border:1px solid var(--line)}
+  .feedback{font-family:var(--mono);font-size:15px;min-height:1.3em;color:var(--green)}
+  .opts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  .opt{font-family:var(--mono);font-size:17px;padding:10px 18px;border:1px solid var(--line);
+    border-radius:9px;background:#0e2034;color:var(--ink);cursor:pointer;transition:all .2s}
+  .opt:hover{border-color:var(--amber)}
+  .opt.correct{border-color:var(--green);background:rgba(126,231,135,.14);color:var(--green)}
+  .opt.wrong{border-color:#ff6b6b;background:rgba(255,107,107,.12);color:#ff9a9a}
+  .explain{color:var(--dim);font-size:14px;max-width:38ch;line-height:1.5;text-align:center}
+
+  /* footer transport */
+  .scrubber{position:absolute;left:0;right:0;bottom:64px;height:18px;display:flex;align-items:center;
+    padding:0 18px;cursor:pointer}
+  .scrub-track{position:relative;flex:1;height:5px;border-radius:3px;background:var(--line)}
+  .scrub-fill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--amber);border-radius:3px}
+  .scrub-head{position:absolute;top:50%;left:0;width:13px;height:13px;border-radius:50%;
+    background:var(--amber);transform:translate(-50%,-50%) scale(.6);opacity:0;
+    transition:opacity .15s,transform .15s;box-shadow:0 1px 5px rgba(0,0,0,.5)}
+  .scrubber:hover .scrub-head,.scrubber.dragging .scrub-head{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  .scrubber:hover .scrub-track{height:7px}
+  .time{font-family:var(--mono);font-size:12px;color:var(--dim);white-space:nowrap;min-width:84px}
+  .controls{position:absolute;bottom:0;left:0;right:0;height:64px;border-top:1px solid var(--line);
+    display:flex;align-items:center;gap:12px;padding:0 18px;background:rgba(8,18,30,.6)}
+  .controls button{background:none;border:none;color:var(--ink);cursor:pointer;font-size:15px;
+    font-family:var(--sans);display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:7px;
+    transition:background .15s,color .15s}
+  .controls button:hover{background:rgba(255,255,255,.07)}
+  .controls button:disabled{opacity:.3;cursor:default}
+  .controls button:disabled:hover{background:none}
+  #toggle{min-width:96px;justify-content:center}
+  .seg{font-family:var(--mono);font-size:12px;color:var(--dim);white-space:nowrap;
+    max-width:150px;overflow:hidden;text-overflow:ellipsis}
+  .gatebadge{font-family:var(--mono);font-size:12px;color:var(--amber)}
+
+  /* clickable segment timeline */
+  .timeline{flex:1;display:flex;align-items:center;gap:6px;min-width:0}
+  .tick{position:relative;flex:1;height:6px;border-radius:3px;background:var(--line);
+    cursor:pointer;transition:background .2s}
+  .tick:hover{background:#3a5f86}
+  .tick.done{background:var(--amber)}
+  .tick.active{background:var(--amber);box-shadow:0 0 0 2px rgba(255,180,84,.3)}
+  .tick.ix{background:repeating-linear-gradient(45deg,var(--line),var(--line) 3px,#1a3550 3px,#1a3550 6px)}
+  .tick.ix.done,.tick.ix.active{background:repeating-linear-gradient(45deg,var(--amber),var(--amber) 3px,#e09a30 3px,#e09a30 6px)}
+  .tick .tip{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
+    background:#0a1622;border:1px solid var(--line);color:var(--ink);font-family:var(--mono);
+    font-size:11px;padding:4px 8px;border-radius:6px;white-space:nowrap;opacity:0;
+    pointer-events:none;transition:opacity .15s;z-index:7}
+  .tick:hover .tip{opacity:1}
+  .tick .tip .num{color:var(--amber)}
+
+  /* interaction gate banner */
+  .ix-wait{position:absolute;bottom:74px;left:50%;transform:translateX(-50%);
+    background:rgba(255,180,84,.14);border:1px solid var(--amber);color:var(--amber);
+    padding:7px 16px;border-radius:999px;font-size:13px;font-family:var(--mono);
+    opacity:0;transition:opacity .3s;pointer-events:none}
+  .ix-wait.show{opacity:1}
+
+  .gate{position:absolute;inset:0;background:rgba(8,16,26,.93);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:18px;z-index:6;text-align:center;padding:8%}
+  .gate h2{font-size:clamp(20px,2.6vw,28px)} .gate p{color:var(--dim);max-width:42ch;line-height:1.55;font-size:15px}
+  .gate code{font-family:var(--mono);color:var(--amber);background:#0e2034;padding:2px 6px;border-radius:5px;font-size:13px}
+  .start{background:var(--amber);color:#0d1b2a;border:none;font-weight:600;padding:13px 34px;border-radius:999px;font-size:16px;cursor:pointer}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="chrome">
+    <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span class="file" id="fileLabel">string_indexing.py — recap</span>
+  </div>
+  <div class="canvas" id="canvas"></div>
+
+  <div class="ix-wait" id="ixWait">Interactive — try it, then press Continue ▸</div>
+  <div class="scrubber" id="scrubber" title="Click or drag to seek within this segment">
+    <div class="scrub-track"><div class="scrub-fill" id="scrubFill"></div><div class="scrub-head" id="scrubHead"></div></div>
+  </div>
+  <div class="controls" id="controls" style="display:none">
+    <button id="prevBtn" title="Previous (←)">⏮</button>
+    <button id="toggle" title="Play / Pause (space)">⏸ Pause</button>
+    <button id="nextBtn" title="Next (→)">⏭</button>
+    <span class="time" id="timeLabel">0:00 / 0:00</span>
+    <div class="timeline" id="timeline"></div>
+    <button id="replay" title="Restart">↻</button>
+    <span class="seg" id="segLabel"></span>
+  </div>
+
+  <div class="gate" id="gate">
+    <div class="gatebadge">String Indexing · Recap</div>
+    <h2>Everything you learned, in two minutes</h2>
+    <p>A 2-minute recap of the five takeaways, with one last prediction.
+       Put the <code>audio/</code> folder next to this file, then press play.
+       Serve via <code>python -m http.server</code> so audio can load.</p>
+    <button class="start" id="start">▶ Play</button>
+    <p style="font-size:13px">No audio yet? It runs on estimated timings.</p>
+  </div>
+</div>
+
+<script>
+let SCRIPT=null, manifest=null, audioEl=null, audioBust=0, idx=0, paused=false, usingAudio=false, waiting=false;
+const stepTimers=[];
+// clock-based playback state
+let rafId=null, segStart=0, segPos=0, segDur=0, lastTs=0, segEnded=false, dragging=false;
+
+const canvas=document.getElementById('canvas');
+const segLabel=document.getElementById('segLabel');
+const controls=document.getElementById('controls');
+const gate=document.getElementById('gate');
+const toggleBtn=document.getElementById('toggle');
+const ixWait=document.getElementById('ixWait');
+const prevBtn=document.getElementById('prevBtn');
+const nextBtn=document.getElementById('nextBtn');
+const timeline=document.getElementById('timeline');
+const scrubber=document.getElementById('scrubber');
+const scrubFill=document.getElementById('scrubFill');
+const scrubHead=document.getElementById('scrubHead');
+const timeLabel=document.getElementById('timeLabel');
+let started=false;
+
+function fmtTime(s){ s=Math.max(0,Math.floor(s)); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
+
+/* ---------- builders ---------- */
+function gridHTML(cfg){
+  const word=cfg.word, len=[...word].length;
+  const excl=cfg.exclude||[];
+  let cells=[...word].map((ch,i)=>{
+    const neg = cfg.reveal_negative ? `<div class="nidx">${i-len}</div>` : '';
+    const ex = excl.includes(i) ? ' excluded' : '';
+    return `<div class="cell${ex}" data-i="${i}">
+      <div class="pointer">▼</div>
+      <div class="glyph">${ch==' '?'&nbsp;':ch}</div>
+      <div class="idx">${i}</div>${neg}
+    </div>`;
+  }).join('');
+  return `<div class="grid${cfg.compact?' compact':''}">${cells}</div>`;
+}
+
+function buildSlide(seg){
+  const s=document.createElement('section');
+  s.className='slide'; s.dataset.seg=seg.id;
+  const eye=seg.eyebrow?`<div class="eyebrow">${seg.eyebrow}</div>`:'';
+
+  if(seg.scene==='title' || seg.scene==='recap'){
+    if(seg.scene==='recap'){
+      const lis=seg.recap_points.map((p,i)=>`<li><span class="n">${i+1}</span><span>${p}</span></li>`).join('');
+      s.innerHTML=`${eye}<h1>${seg.heading||''}</h1><ul class="recap">${lis}</ul>`;
+    }else{
+      s.innerHTML=`${eye}<h1>${seg.heading}</h1>${seg.sub?`<p class="sub">${seg.sub}</p>`:''}`;
+    }
+  }
+  else if(seg.scene==='grid'){
+    const cap=seg.caption?`<div class="caption">${seg.caption}</div>`:'';
+    let inner=`${eye}${cap}${gridHTML(seg.grid)}`;
+    if(seg.kind==='narration') inner+=`<div class="expr">${seg.expr||''}</div>`;
+    if(seg.kind==='interactive'&&seg.widget==='slice_cell') inner+=sliceWidgetHTML(seg.config);
+    if(seg.kind==='interactive'&&seg.widget==='predict') inner+=predictWidgetHTML(seg.config);
+    s.innerHTML=inner;
+  }
+  else if(seg.scene==='compare'){
+    const c=seg.compare;
+    const col=(d)=>`<div class="cmpcol">
+        <div class="cmplabel">${d.label}</div>
+        ${gridHTML({word:c.word,reveal_index:true})}
+        <div class="cmpres">→ ${d.result}</div><div class="cmptag">${d.tag}</div>
+      </div>`;
+    s.innerHTML=`${eye}<div class="caption">${seg.caption||''}</div>
+      <div class="compare">${col(c.left)}${col(c.right)}</div>`;
+  }
+  else if(seg.scene==='code_grid'){
+    const cap=seg.caption?`<div class="caption">${seg.caption}</div>`:'';
+    const gridCfg=Object.assign({compact:true}, seg.grid||{});
+    const inner=`${eye}${cap}
+      ${codeBlockHTML(seg.code, seg.active_line)}
+      ${gridHTML(gridCfg)}
+      <div class="expr">${seg.expr||''}</div>`;
+    s.innerHTML=inner;
+  }
+  else if(seg.scene==='code_live'){
+    const cap=seg.caption?`<div class="caption">${seg.caption}</div>`:'';
+    s.innerHTML=`${eye}${cap}${pyodideWidgetHTML(seg.config)}`;
+  }
+  canvas.appendChild(s);
+  return s;
+}
+
+function codeBlockHTML(lines, activeLine){
+  const rows=(lines||[]).map((ln,i)=>{
+    const active = (ln.hl || i===activeLine) ? ' active' : '';
+    return `<div class="codeline${active}"><span class="lnum">${i+1}</span><span class="ltext">${escapeHTML(ln.text)}</span></div>`;
+  }).join('');
+  return `<div class="codeblock">${rows}</div>`;
+}
+function escapeHTML(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function pyodideWidgetHTML(cfg){
+  return `<div class="widget pyw" data-w="pyodide">
+    <div class="pyeditor"><textarea class="pycode" spellcheck="false">${escapeHTML(cfg.starter_code||'')}</textarea></div>
+    <div class="pyrow">
+      <button class="btn pyrun">▶ Run</button>
+      <span class="pystatus">loading Python…</span>
+    </div>
+    <pre class="pyout" aria-live="polite"></pre>
+    ${cfg.hint?`<div class="pyhint">💡 ${cfg.hint}</div>`:''}
+  </div>`;
+}
+
+function sliceWidgetHTML(cfg){
+  return `<div class="widget" data-w="slice">
+    <div class="row">s[<input class="ixIn" type="number" min="${cfg.min}" max="${cfg.max}" value="0">]
+      <button class="btn ixRun">Run</button></div>
+    <div class="feedback ixFb"></div>
+  </div>`;
+}
+function predictWidgetHTML(cfg){
+  const opts=cfg.options.map((o,i)=>`<button class="opt" data-i="${i}">${o}</button>`).join('');
+  return `<div class="widget" data-w="predict">
+    <div class="opts">${opts}</div>
+    <div class="explain pxExp"></div>
+  </div>`;
+}
+
+/* ---------- per-scene animation (cue-list model for seekability) ---------- */
+function clearStepTimers(){ while(stepTimers.length) clearTimeout(stepTimers.pop()); }
+
+function setHighlight(slide, list, mode){
+  slide.querySelectorAll('.cell').forEach(c=>{
+    c.classList.remove('hot','span');
+    const i=+c.dataset.i;
+    if(list&&list.includes(i)) c.classList.add(mode==='span'?'span':'hot');
+  });
+}
+function setPointer(slide, pos){
+  slide.querySelectorAll('.pointer').forEach(p=>p.classList.remove('show'));
+  if(pos==null) return;
+  const cell=slide.querySelector(`.cell[data-i="${pos}"]`);
+  if(cell) cell.querySelector('.pointer').classList.add('show');
+}
+
+// active cue list for the current segment: each cue = {t: ms, fn: ()=>{}}
+let sceneCues=[];
+
+// build (but do not schedule) the cue list for a segment
+function buildCues(slide, seg, durSec){
+  const cues=[];
+  const idxEls=[...slide.querySelectorAll('.idx')];
+  const negEls=[...slide.querySelectorAll('.nidx')];
+  if(seg.grid?.reveal_index){
+    idxEls.forEach((el,i)=>cues.push({t:120*i+150, fn:()=>el.classList.add('show')}));
+  }
+  if(seg.grid?.reveal_negative){
+    const base=120*idxEls.length+250;
+    negEls.forEach((el,i)=>{
+      const order = seg.grid.walk_from_end ? (negEls.length-1-i) : i;
+      cues.push({t:base+120*order, fn:()=>el.classList.add('show')});
+    });
+  }
+  if(seg.expr_steps && seg.expr_steps.length){
+    const exprEl=slide.querySelector('.expr');
+    seg.expr_steps.forEach(st=>{
+      const t=Math.max(0,(st.at||0)*durSec*1000);
+      cues.push({t, fn:()=>{
+        setHighlight(slide, st.highlight, 'hot');
+        setPointer(slide, st.pointer);
+        if(exprEl && st.expr!=null) exprEl.innerHTML=st.expr;
+      }});
+    });
+  } else if(seg.grid && seg.grid.highlight){
+    cues.push({t:400, fn:()=>{ setHighlight(slide, seg.grid.highlight,'hot'); setPointer(slide, seg.grid.pointer); }});
+  }
+  if(seg.scene==='compare'){
+    const cols=[...slide.querySelectorAll('.cmpcol')]; const c=seg.compare;
+    cues.push({t:500, fn:()=>setHighlight(cols[0], c.left.highlight,'hot')});
+    cues.push({t:1400, fn:()=>setHighlight(cols[1], c.right.highlight,'span')});
+  }
+  if(seg.scene==='recap'){
+    slide.querySelectorAll('.recap li').forEach((li,i)=>
+      cues.push({t:400+500*i, fn:()=>li.classList.add('in')}));
+  }
+  cues.sort((a,b)=>a.t-b.t);
+  return cues;
+}
+
+// reset a slide's animated elements to their pre-animation state
+function resetSceneVisuals(slide){
+  slide.querySelectorAll('.idx,.nidx').forEach(e=>e.classList.remove('show'));
+  slide.querySelectorAll('.cell').forEach(c=>c.classList.remove('hot','span'));
+  slide.querySelectorAll('.pointer').forEach(p=>p.classList.remove('show'));
+  slide.querySelectorAll('.recap li').forEach(li=>li.classList.remove('in'));
+}
+
+// apply every cue whose time <= posMs (instant — used for seeking and frame updates)
+function applyCuesUpTo(slide, posMs){
+  resetSceneVisuals(slide);
+  sceneCues.forEach(c=>{ if(c.t<=posMs) c.fn(); });
+}
+
+/* ---------- interactive wiring ---------- */
+function wireInteractive(slide, seg){
+  if(seg.widget==='slice_cell'){
+    const inp=slide.querySelector('.ixIn'), run=slide.querySelector('.ixRun'), fb=slide.querySelector('.ixFb');
+    const word=seg.config.word, len=word.length;
+    const doRun=()=>{
+      let v=parseInt(inp.value,10);
+      if(isNaN(v)||v<seg.config.min||v>seg.config.max){ fb.style.color='#ff9a9a'; fb.textContent=`Pick 0 to ${seg.config.max}`; return; }
+      setHighlight(slide,[v],'hot'); setPointer(slide,v);
+      fb.style.color='var(--green)'; fb.textContent=`s[${v}] → '${word[v]}'`;
+    };
+    run.onclick=doRun;
+    inp.onkeydown=e=>{ if(e.key==='Enter') doRun(); };
+  }
+  if(seg.widget==='predict'){
+    const exp=slide.querySelector('.pxExp');
+    slide.querySelectorAll('.opt').forEach(btn=>{
+      btn.onclick=()=>{
+        const i=+btn.dataset.i, correct=seg.config.correct_index;
+        slide.querySelectorAll('.opt').forEach(b=>b.style.pointerEvents='none');
+        if(i===correct){ btn.classList.add('correct'); }
+        else{ btn.classList.add('wrong'); slide.querySelectorAll('.opt')[correct].classList.add('correct'); }
+        setHighlight(slide, seg.config.reveal_highlight,'hot');
+        setPointer(slide, seg.config.reveal_highlight[0]);
+        exp.textContent=seg.config.explanation;
+      };
+    });
+  }
+  if(seg.widget==='pyodide_cell'){
+    const runBtn=slide.querySelector('.pyrun');
+    const status=slide.querySelector('.pystatus');
+    const out=slide.querySelector('.pyout');
+    const code=slide.querySelector('.pycode');
+
+    // always sync status to current Pyodide state (handles jumps + preload-already-done)
+    const markReady=()=>{ status.textContent='Python ready'; status.classList.add('ready'); runBtn.disabled=false; };
+    if(_pyodide){ markReady(); }
+    else{
+      runBtn.disabled=true; status.textContent='loading Python…';
+      ensurePyodide(markReady, (msg)=>{ status.textContent=msg; });
+    }
+
+    if(runBtn.dataset.wired==='1') return;   // wire click handler only once
+    runBtn.dataset.wired='1';
+    const run=async ()=>{
+      out.classList.remove('err'); out.textContent='running…';
+      try{
+        const py=await ensurePyodide();
+        py.runPython(`import sys,io\n_b=io.StringIO()\nsys.stdout=_b`);
+        let result;
+        try{ result=py.runPython(code.value); }
+        finally{ py.runPython(`sys.stdout=sys.__stdout__`); }
+        let printed=py.runPython(`_b.getvalue()`);
+        let text=(printed||'');
+        if(result!==undefined && result!==null && String(result)!=='undefined' && text==='') text=String(result);
+        out.textContent = text!=='' ? text : '(no output — add a print())';
+      }catch(e){
+        out.classList.add('err');
+        out.textContent=String(e.message||e).split('\n').slice(-6).join('\n');
+      }
+    };
+    runBtn.onclick=run;
+  }
+}
+
+/* ---------- Pyodide (lazy, loaded once, shared) ---------- */
+let _pyodide=null, _pyLoading=null;
+function ensurePyodide(onReady, onProgress){
+  if(_pyodide){ if(onReady) onReady(); return Promise.resolve(_pyodide); }
+  if(!_pyLoading){
+    if(onProgress) onProgress('loading Python…');
+    _pyLoading=new Promise((resolve,reject)=>{
+      const s=document.createElement('script');
+      s.src='https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js';
+      s.onload=async ()=>{
+        try{
+          _pyodide=await loadPyodide({indexURL:'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/'});
+          resolve(_pyodide);
+        }catch(e){ reject(e); }
+      };
+      s.onerror=()=>reject(new Error('Could not load Python (needs internet)'));
+      document.head.appendChild(s);
+    });
+  }
+  _pyLoading.then(()=>{ if(onReady) onReady(); }).catch(e=>{ if(onProgress) onProgress('Python failed to load — needs internet'); });
+  return _pyLoading;
+}
+
+/* ---------- playback engine (clock-based, seekable) ---------- */
+function stopClock(){ if(rafId){ cancelAnimationFrame(rafId); rafId=null; } }
+function stopPlayback(){
+  stopClock(); clearStepTimers();
+  if(usingAudio && audioEl){ audioEl.pause(); }
+  waiting=false; ixWait.classList.remove('show');
+}
+
+function showSlide(i){
+  document.querySelectorAll('.slide').forEach(s=>s.classList.remove('on'));
+  const seg=SCRIPT.segments[i];
+  const slide=document.querySelector(`.slide[data-seg="${seg.id}"]`);
+  slide.classList.add('on');
+  segLabel.textContent=`${i+1} / ${SCRIPT.segments.length} · ${seg.eyebrow||''}`;
+  updateTimeline(i);
+  prevBtn.disabled = i<=0;
+  nextBtn.disabled = i>=SCRIPT.segments.length-1;
+  return slide;
+}
+function durationFor(i){
+  if(usingAudio && manifest?.segments?.[i]?.duration) return manifest.segments[i].duration;
+  return SCRIPT.segments[i].est_seconds;
+}
+
+function updateScrub(){
+  const pct = segDur>0 ? Math.min(100,(segPos/segDur)*100) : 0;
+  scrubFill.style.width=pct+'%';
+  scrubHead.style.left=pct+'%';
+  timeLabel.textContent=`${fmtTime(segPos)} / ${fmtTime(segDur)}`;
+}
+
+let curSlide=null, curSeg=null;
+
+// the single source of truth for "where we are" — sets visuals + scrubber to segPos
+function renderAt(posMs){
+  if(curSlide) applyCuesUpTo(curSlide, posMs);
+  updateScrub();
+}
+
+function tick(ts){
+  if(paused||waiting){ lastTs=ts; rafId=requestAnimationFrame(tick); return; }
+  if(!lastTs) lastTs=ts;
+  const dt=(ts-lastTs)/1000; lastTs=ts;
+  // if using audio, trust the audio clock; else advance manually
+  if(usingAudio && audioEl && !audioEl.paused){
+    segPos=audioEl.currentTime;
+  } else {
+    segPos+=dt;
+  }
+  renderAt(segPos*1000);
+  if(segPos>=segDur-0.02){
+    segPos=segDur; renderAt(segDur*1000); segEnded=true;
+    onSegmentEnd(); return;
+  }
+  rafId=requestAnimationFrame(tick);
+}
+
+function onSegmentEnd(){
+  stopClock();
+  const seg=SCRIPT.segments[idx];
+  if(seg.kind==='interactive'){ enterWaitState(idx); }
+  else if(idx<SCRIPT.segments.length-1){ playIndex(idx+1); }
+  else finish();
+}
+
+function playIndex(i){
+  stopPlayback();
+  paused=false; waiting=false; segEnded=false; lastTs=0;
+  toggleBtn.textContent='⏸ Pause';
+  if(i>=SCRIPT.segments.length){ finish(); return; }
+  idx=i;
+  curSeg=SCRIPT.segments[i];
+  curSlide=showSlide(i);
+  segDur=durationFor(i);
+  segPos=0;
+  sceneCues=buildCues(curSlide, curSeg, segDur);
+  if(curSeg.kind==='interactive') wireInteractive(curSlide, curSeg);
+  renderAt(0);
+  if(usingAudio && audioEl){
+    // one reused element: swap src per segment so it stays "unlocked" after the first
+    // gesture-driven play (Safari/iOS block .play() on fresh elements outside a gesture).
+    audioEl.src=`audio/${curSeg.id}.mp3?v=${audioBust}`;
+    audioEl.currentTime=0; audioEl.play().catch(()=>{});
+  }
+  rafId=requestAnimationFrame(tick);
+}
+
+// seek within the CURRENT segment to a fraction 0..1
+function seekFrac(frac){
+  if(!curSeg) return;
+  frac=Math.max(0,Math.min(1,frac));
+  segPos=frac*segDur; segEnded=false;
+  if(usingAudio && audioEl){ try{ audioEl.currentTime=segPos; }catch(e){} }
+  renderAt(segPos*1000);
+  lastTs=0;
+  // if we were at an interactive wait and user scrubs back, leave wait state
+  if(waiting && frac<0.999){ waiting=false; ixWait.classList.remove('show'); toggleBtn.textContent='⏸ Pause'; if(!rafId) rafId=requestAnimationFrame(tick); }
+}
+
+/* jump to any segment, playing from its start */
+function jumpTo(i){
+  i=Math.max(0,Math.min(SCRIPT.segments.length-1,i));
+  playIndex(i);
+}
+
+/* ---------- timeline ---------- */
+function buildTimeline(){
+  timeline.innerHTML='';
+  SCRIPT.segments.forEach((seg,i)=>{
+    const t=document.createElement('div');
+    t.className='tick'+(seg.kind==='interactive'?' ix':'');
+    t.dataset.i=i;
+    const kindTag = seg.kind==='interactive' ? ' · interactive' : '';
+    t.innerHTML=`<span class="tip"><span class="num">${i+1}</span> ${seg.eyebrow||seg.scene}${kindTag}</span>`;
+    t.onclick=()=>jumpTo(i);
+    timeline.appendChild(t);
+  });
+}
+function updateTimeline(active){
+  [...timeline.children].forEach((t,i)=>{
+    t.classList.toggle('active', i===active);
+    t.classList.toggle('done', i<active);
+  });
+}
+
+function enterWaitState(i){
+  waiting=true; ixWait.classList.add('show');
+  segPos=segDur; updateScrub();
+  toggleBtn.textContent='▸ Continue';
+}
+function leaveWaitState(){
+  waiting=false; ixWait.classList.remove('show');
+  toggleBtn.textContent='⏸ Pause';
+  playIndex(idx+1);
+}
+
+function finish(){ stopClock(); toggleBtn.textContent='✓ Done'; segLabel.textContent='Complete'; }
+
+function pause(){
+  paused=true;
+  if(usingAudio&&audioEl) audioEl.pause();
+  toggleBtn.textContent='▶ Resume';
+}
+function resume(){
+  paused=false; lastTs=0;
+  toggleBtn.textContent='⏸ Pause';
+  if(usingAudio&&audioEl) audioEl.play().catch(()=>{});
+  if(!rafId) rafId=requestAnimationFrame(tick);
+}
+
+toggleBtn.onclick=()=>{
+  if(waiting){ leaveWaitState(); return; }
+  paused?resume():pause();
+};
+prevBtn.onclick=()=>{ if(idx>0) jumpTo(idx-1); };
+nextBtn.onclick=()=>{
+  // from an interactive gate, Next should advance past it
+  if(idx<SCRIPT.segments.length-1) jumpTo(idx+1);
+};
+document.getElementById('replay').onclick=()=>jumpTo(0);
+
+// keyboard transport
+document.addEventListener('keydown',e=>{
+  if(!started) return;
+  if(e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA') return; // don't hijack typing
+  if(e.key===' '){ e.preventDefault(); toggleBtn.click(); }
+  else if(e.key==='ArrowLeft'){ e.preventDefault(); prevBtn.click(); }
+  else if(e.key==='ArrowRight'){ e.preventDefault(); nextBtn.click(); }
+});
+
+/* ---------- scrubber seeking ---------- */
+function fracFromEvent(e){
+  const track=scrubber.querySelector('.scrub-track');
+  const r=track.getBoundingClientRect();
+  const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+  return r.width>0 ? x/r.width : 0;
+}
+function startDrag(e){
+  if(!started||!curSeg) return;
+  dragging=true; scrubber.classList.add('dragging');
+  seekFrac(fracFromEvent(e));
+  e.preventDefault();
+}
+function moveDrag(e){ if(dragging) seekFrac(fracFromEvent(e)); }
+function endDrag(){ dragging=false; scrubber.classList.remove('dragging'); }
+scrubber.addEventListener('mousedown',startDrag);
+document.addEventListener('mousemove',moveDrag);
+document.addEventListener('mouseup',endDrag);
+scrubber.addEventListener('touchstart',startDrag,{passive:false});
+document.addEventListener('touchmove',moveDrag,{passive:false});
+document.addEventListener('touchend',endDrag);
+
+/* ---------- boot ---------- */
+async function loadManifest(){
+  try{ const r=await fetch('audio/manifest.json',{cache:'no-store'}); if(r.ok){ manifest=await r.json(); usingAudio=true; } }
+  catch(e){ usingAudio=false; }
+}
+async function boot(){
+  SCRIPT=await (await fetch('script.json',{cache:'no-store'})).json();
+  document.getElementById('fileLabel').textContent='string_indexing.py — recap';
+  SCRIPT.segments.forEach(buildSlide);
+  buildTimeline();
+}
+document.getElementById('start').onclick=async ()=>{
+  audioBust=Date.now();
+  // Create ONE audio element now, inside the user gesture. It gets unlocked by the
+  // first gesture-driven play (in playIndex(0)) and is then reused for every segment —
+  // so auto-advanced segments 2..N are no longer blocked by autoplay policy.
+  audioEl=new Audio(); audioEl.preload='auto';
+  await loadManifest();
+  if(!usingAudio){ audioEl=null; }
+  gate.style.display='none'; controls.style.display='flex';
+  started=true;
+  // begin loading Python in the background if any segment needs it
+  if(SCRIPT.segments.some(s=>s.widget==='pyodide_cell')) ensurePyodide();
+  playIndex(0);
+};
+boot();
+</script>
+</body>
+</html>

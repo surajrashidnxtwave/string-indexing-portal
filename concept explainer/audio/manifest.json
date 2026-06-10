@@ -1,0 +1,52 @@
+{
+  "segments": [
+    {
+      "id": "seg_01",
+      "scene": "title",
+      "file": "audio/seg_01.mp3",
+      "duration": 18.99
+    },
+    {
+      "id": "seg_02",
+      "scene": "grid",
+      "file": "audio/seg_02.mp3",
+      "duration": 23.72
+    },
+    {
+      "id": "seg_03",
+      "scene": "grid",
+      "file": "audio/seg_03.mp3",
+      "duration": 23.43
+    },
+    {
+      "id": "seg_04",
+      "scene": "grid",
+      "file": "audio/seg_04.mp3",
+      "duration": 12.02
+    },
+    {
+      "id": "seg_05",
+      "scene": "grid",
+      "file": "audio/seg_05.mp3",
+      "duration": 23.72
+    },
+    {
+      "id": "seg_06",
+      "scene": "grid",
+      "file": "audio/seg_06.mp3",
+      "duration": 14.11
+    },
+    {
+      "id": "seg_07",
+      "scene": "compare",
+      "file": "audio/seg_07.mp3",
+      "duration": 24.79
+    },
+    {
+      "id": "seg_08",
+      "scene": "recap",
+      "file": "audio/seg_08.mp3",
+      "duration": 25.94
+    }
+  ]
+}
